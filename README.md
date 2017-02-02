@@ -42,7 +42,7 @@ The data we use to make movie recommendations is compiled by researchers in the 
 
 ##Data Description
 
-The MovieLens datasets contain 3 csv files that we are using data from.
+The MovieLens datasets contains 3 csv files that we are using data from.
 
 * movies.csv (3 fields)
   * `movieId`: unique integer identifer for each movie
