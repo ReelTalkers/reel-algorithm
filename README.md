@@ -2,7 +2,7 @@
 
 Source code for the Reel movie recommender algorithm and movie recommendation server are contained in this repository.
 
-The movie recommender algorithm uses the MovieLens dataset as past data to derive new recommendations. This dataset is not included with this repository. Instructions on how to obtain this dataset are included in the setup section.
+The movie recommender algorithm uses the MovieLens dataset as past data to derive new recommendations. This dataset is not included with this repository. Instructions on how to obtain this dataset are included in the [obtaining data subsection](#obtaining-data).
 
 ##Setup
 
@@ -27,3 +27,23 @@ The movie recommender algorithm uses the MovieLens dataset as past data to deriv
   * `deactivate`
 
 If you run into any questions, consult [this article](http://timmyreilly.azurewebsites.net/python-with-ubuntu-on-windows/).
+
+###Obtaining Data
+
+The data we use to make movie recommendations is compiled by researchers in the University of Minnesota GroupLens Research group.
+
+* We are using the [MoviesLens latest dataset](http://files.grouplens.org/datasets/movielens/ml-latest.zip).
+* Other (smaller) datasets are available on [MovieLens datasets page](https://grouplens.org/datasets/movielens/).
+
+####Data Setup
+
+* Download the zip file into the main directory of the project.
+* Decompress and rename the directory `data/`
+
+##Development
+
+* Do all development work inside of a virtualenv. Instructions for setup of virtualenv are descried above.
+  * After installing new dependencies with `pip` on your local machine, update the requirements.txt file so that your environment will be reproducible.
+    * `pip freeze > requirements.txt`
+
+* This project mainly utilizes `flask` to create REST API endpoints, and `scipy` for recommending movies.
