@@ -35,10 +35,29 @@ The data we use to make movie recommendations is compiled by researchers in the 
 * We are using the [MoviesLens latest dataset](http://files.grouplens.org/datasets/movielens/ml-latest.zip).
 * Other (smaller) datasets are available on [MovieLens datasets page](https://grouplens.org/datasets/movielens/).
 
-####Data Setup
+###Data Setup
 
 * Download the zip file into the main directory of the project.
 * Decompress and rename the directory `data/`
+
+##Data Description
+
+The MovieLens datasets contain 3 csv files that we are using data from.
+
+* movies.csv (3 fields)
+  * `movieId`: unique integer identifer for each movie
+  * `title`: the title of the movie (with release year in parenthesis)
+  * `genres`: a pipe separated list of genres
+* ratings.csv (4 fields)
+  * `userId`: unique integer identifier for each user
+  * `movieId`: cross-references the movie ids in movies.csv
+  * `rating`: star rating (in half-star increments from .5 to 5.0)
+  * `timestamps`: when the user made the rating (in seconds since 1970)
+* links.csv (3 fields)
+  * `movieId`: cross-references the movie ids in movies.csv
+  * `imdbId`: imdb identifier for given movie
+  * `tmdbId`: tmdb identifier for given movie
+
 
 ##Development
 
