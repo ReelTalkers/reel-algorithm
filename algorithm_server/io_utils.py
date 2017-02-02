@@ -1,16 +1,25 @@
 
-def get_ratings_stream(filename):
-    reader = open(filename, "r")
+
+def ratings_file(datadir):
+    return "%s/ratings.csv" % datadir
+
+
+def movie_description_file(datadir):
+    return "%s/movies.csv" % datadir
+
+
+def get_ratings_stream(datadir):
+    reader = open(ratings_file(datadir), "r")
     for i, line in enumerate(reader.readlines()):
         if(i >= 1):
             yield tuple(str(line).strip().split(",")[:3])
     reader.close()
 
 
-def map_movie_id_to_matrix_location(filename):
+def map_movie_id_to_matrix_location(datadir):
     matrix_loc_map = dict()
 
-    reader = open(filename, "r")
+    reader = open(movie_description_file(datadir), "r")
     for i, line in enumerate(reader.readlines()):
         if(i >= 1):
             comma_pos = line.find(",")
@@ -18,3 +27,16 @@ def map_movie_id_to_matrix_location(filename):
                 matrix_loc_map[line[:comma_pos]] = i
 
     return matrix_loc_map
+
+
+def build_user_movie_matrix_as_dict(datadir):
+    user_movie_dict = dict()
+    dimension = 0
+
+    movie_id_locs = map_movie_id_to_matrix_location(datadir)
+    ratings_stream = get_ratings_stream(datadir)
+
+
+
+
+    return dimension, user_movie_dict
