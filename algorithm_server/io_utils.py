@@ -1,4 +1,30 @@
-from bidict import bidict
+from scipy.sparse import *
+
+
+class User_Movie_Matrix:
+
+    def __init__(self):
+        #Map the user and movie ids from the MovieLens dataset to indices in the User-Movie matrix
+        self.user_id_index = {}
+        self.movie_id_index = {}
+
+        self.temp_storage_dict = {}
+        self.matrix = None
+
+    def add_rating(self, user, movie, rating):
+        self.update_index(self.user_id_index, user)
+        self.update_index(self.movie_id_index, movie)
+        self.temp_storage_dict[(user, movie)] = rating
+
+    def update_index(self, index, identifier):
+        if(identifier not in index):
+            index[identifier] = len(index)
+
+    def build_matrix(self):
+        self.matrix = dok_matrix((len(self.user_id_index), len(self.movie_id_index)))
+        for user, movie in self.temp_storage_dict:
+            self.matrix[self.user_id_index[user], self.movie_id_index[movie]] = self.temp_storage_dict[(user, movie)]
+        self.matrix = self.matrix.tocsr()
 
 
 def ratings_file(datadir):
@@ -8,7 +34,9 @@ def ratings_file(datadir):
 def movie_description_file(datadir):
     return "%s/movies.csv" % datadir
 
-
+"""
+Returns a generator in which each item is a tuple with the following fields ("userId", "movieId", "rating")
+"""
 def get_ratings_stream(datadir):
     reader = open(ratings_file(datadir), "r")
     for i, line in enumerate(reader.readlines()):
@@ -17,28 +45,14 @@ def get_ratings_stream(datadir):
     reader.close()
 
 
-def map_movie_id_to_matrix_location(datadir):
-    matrix_loc_map = bidict()
+def build_user_item_matrix(datadir):
+    matrix = User_Movie_Matrix()
 
-    reader = open(movie_description_file(datadir), "r")
-    for i, line in enumerate(reader.readlines()):
-        if(i >= 1):
-            comma_pos = line.find(",")
-            if(comma_pos > 0):
-                matrix_loc_map[line[:comma_pos]] = i
+    for userId, movieId, rating in get_ratings_stream(datadir):
+        matrix.add_rating(int(userId), int(movieId), float(rating))
 
-    return matrix_loc_map
+    matrix.build_matrix()
+    return matrix
 
-
-def build_user_movie_matrix_as_dict(datadir):
-    user_movie_dict = dict()
-    unique_users = set()
-
-    movie_id_locs = map_movie_id_to_matrix_location(datadir)
-    ratings_stream = get_ratings_stream(datadir)
-
-    for user_id, movie_id, rating in ratings_stream:
-        user_movie_dict[(int(user_id) + len(movie_id_locs), movie_id_locs[movie_id])] = rating
-        unique_users.add(user_id)
-
-    return len(unique_users) + len(movie_id_locs), user_movie_dict
+m = build_user_item_matrix("../data-small")
+print(m.matrix)
