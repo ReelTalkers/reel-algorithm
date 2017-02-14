@@ -37,8 +37,8 @@ The data we use to make movie recommendations is compiled by researchers in the 
 
 ###Data Setup
 
-* Download the zip file into the main directory of the project.
-* Decompress and rename the directory `data/`
+* Download the zip file into the `data/` directory of the project.
+* Decompress and rename the subdirectory to `full/`
 
 ##Data Description
 

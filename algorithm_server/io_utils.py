@@ -81,7 +81,6 @@ def get_first_user_rating_dict(datadir):
     return ratings
 
 
-
 def build_user_item_matrix(datadir):
     matrix = User_Movie_Matrix()
 
@@ -96,5 +95,5 @@ def build_user_item_matrix(datadir):
 
 if __name__ == "__main__":
 
-    m = build_user_item_matrix("../data-small")
+    m = build_user_item_matrix("../data/small")
     print(m.matrix)

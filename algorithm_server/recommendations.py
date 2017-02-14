@@ -49,9 +49,11 @@ def convert_item_scores_to_movielens_ids(rating_matrix, item_scores):
 
 
 if __name__ == "__main__":
-    ratings_matrix = io_utils.build_user_item_matrix("../data-small")
+    datadir = "../data/small"
 
-    new_user_ratings = io_utils.get_first_user_rating_dict("../data-small")
+    ratings_matrix = io_utils.build_user_item_matrix(datadir)
+
+    new_user_ratings = io_utils.get_first_user_rating_dict(datadir)
 
     user_similarity_profile = calculate_user_similarity_profile(ratings_matrix, new_user_ratings)
 
