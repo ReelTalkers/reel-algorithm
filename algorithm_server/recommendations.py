@@ -40,11 +40,21 @@ def calculate_pairwise_user_similarity(user1_preferences, user2_preferences):
     return (num_agreements / len(shared_items) if len(shared_items) > 0 else 0)
 
 
+def calculate_item_relevance_scores(ratings_matrix, user_similarity_profile):
+    return user_similarity_profile.dot(ratings_matrix.matrix) / sum(user_similarity_profile.data)
+
+
+def convert_item_scores_to_movielens_ids(rating_matrix, item_scores):
+    return None
+
+
 if __name__ == "__main__":
-    m = io_utils.build_user_item_matrix("../data-small")
+    ratings_matrix = io_utils.build_user_item_matrix("../data-small")
 
     new_user_ratings = io_utils.get_first_user_rating_dict("../data-small")
 
-    user_similarity_profile = calculate_user_similarity_profile(m, new_user_ratings)
+    user_similarity_profile = calculate_user_similarity_profile(ratings_matrix, new_user_ratings)
 
-    print(min(user_similarity_profile.data))
+    relevance_scores = calculate_item_relevance_scores(ratings_matrix, user_similarity_profile)
+
+    print(relevance_scores)
