@@ -1,7 +1,5 @@
 import io_utils
 import scipy.sparse as sp
-import numpy as np
-import math
 
 
 def calculate_user_similarity_profile(ratings_matrix, new_user_reviews):
@@ -35,7 +33,7 @@ def calculate_pairwise_user_similarity(user1_preferences, user2_preferences):
 
     shared_items = set(user1_preferences.indices) & set(user2_preferences.indices)
 
-    num_agreements = sum(1 for x in shared_items if abs(user1_preferences[0, x] - user2_preferences[0, x]) < 2)
+    num_agreements = sum(1 for x in shared_items if abs(user1_preferences[0, x] - user2_preferences[0, x]) <= 2)
 
     return (num_agreements / len(shared_items) if len(shared_items) > 0 else 0)
 
