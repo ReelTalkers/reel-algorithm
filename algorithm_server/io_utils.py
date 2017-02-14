@@ -17,7 +17,7 @@ class User_Movie_Matrix:
     def getrow(self, i):
         return self.matrix.getrow(i)
 
-    def get_sparse_ratings_vector(self, preferences):
+    def get_ratings_vector(self, preferences):
         """
         Converts a user's movie ratings using movie lens identifiers to an index
         based on the locations of movies in the User_Movie_Matrx
@@ -27,7 +27,11 @@ class User_Movie_Matrix:
         Returns a dictionary with the same user ratings but instead mapping (matrix location) -> (user rating)
         Useful when we need to get user similarity profiles.
         """
-        return {self.movie_id_index[x]: preferences[x] for x in preferences}
+        vector = csr_matrix((1, self.get_shape()[1]))
+        for x in preferences:
+            vector[0, x] = preferences[x]
+
+        return vector
 
     def add_rating(self, user, movie, rating):
         self.update_index(self.user_id_index, user)
@@ -56,13 +60,26 @@ def movie_description_file(datadir):
     return "%s/movies.csv" % datadir
 
 
-"""
-Returns a generator in which each item is a tuple with the following fields ("userId", "movieId", "rating")
-"""
 def get_ratings_stream(datadir):
+    """
+    Returns a generator in which each item is a tuple with the following fields ("userId", "movieId", "rating")
+    """
     for i, line in enumerate(open(ratings_file(datadir), "r")):
         if(i >= 1):
             yield tuple(str(line).strip().split(",")[:3])
+
+
+def get_first_user_rating_dict(datadir):
+    ratings = {}
+
+    ratings_stream = get_ratings_stream(datadir)
+    while(True):
+        user, movie, rating = next(ratings_stream)
+        if(not user == "1"):
+            break
+        ratings[int(movie)] = float(rating)
+    return ratings
+
 
 
 def build_user_item_matrix(datadir):
