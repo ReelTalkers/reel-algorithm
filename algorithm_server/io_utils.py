@@ -14,6 +14,9 @@ class User_Movie_Matrix:
     def get_shape(self):
         return self.matrix.shape
 
+    def getrow(self, i):
+        return self.matrix.getrow(i)
+
     def get_sparse_ratings_vector(self, preferences):
         """
         Converts a user's movie ratings using movie lens identifiers to an index
