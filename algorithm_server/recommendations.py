@@ -59,11 +59,13 @@ def get_top_movielens_titles(movie_title_dict, top_movielens_ids):
 
 
 if __name__ == "__main__":
+    ratings_file = "data/sample_ratings.txt"
     datadir = "data/small"
 
     ratings_matrix = io_utils.build_user_item_matrix(datadir)
 
-    new_user_ratings = io_utils.get_first_user_rating_dict(datadir)
+    #new_user_ratings = io_utils.get_first_user_rating_dict(datadir)
+    new_user_ratings = io_utils.get_sample_ratings_dict(datadir, ratings_file)
 
     user_similarity_profile = calculate_user_similarity_profile(ratings_matrix, new_user_ratings)
 
@@ -73,4 +75,4 @@ if __name__ == "__main__":
 
     top_movielens_titles = get_top_movielens_titles(io_utils.get_movie_id_title_dict(datadir), top_movielens_ids)
 
-    print(top_movielens_titles)
+    print("\n".join(x for x in top_movielens_titles))

@@ -31,9 +31,10 @@ class User_Movie_Matrix:
         Returns a dictionary with the same user ratings but instead mapping (matrix location) -> (user rating)
         Useful when we need to get user similarity profiles.
         """
+
         vector = csr_matrix((1, self.get_shape()[1]))
         for x in preferences:
-            vector[0, x] = preferences[x]
+            vector[0, self.movie_id_index[x]] = preferences[x]
 
         return vector
 
@@ -88,8 +89,33 @@ def get_movie_description_stream(datadir):
             yield(tuple(t))
 
 
+def get_links_stream(datadir):
+    for i, line in enumerate(open(movie_links_file(datadir), "r")):
+        if(i >= 1):
+            yield tuple(str(line).strip().split(","))
+
+
+def get_movie_links_dict(datadir, alt_id):
+    """
+    Returns a bidict that maps (movielens id) -> (alternate movie id (either 'imdb' or 'tmdb'))
+    """
+    links = bidict()
+
+    identifiers = {'imdb': 1, 'tmdb': 2}
+
+    if(alt_id not in identifiers):
+        return links
+
+    field = identifiers[alt_id]
+
+    for line in get_links_stream(datadir):
+        links[line[0]] = line[field]
+
+    return links
+
+
 def get_movie_id_title_dict(datadir):
-    return {int(id): title for id, title, genre in get_movie_description_stream(datadir)}
+    return {id: title for id, title, genre in get_movie_description_stream(datadir)}
 
 
 def get_first_user_rating_dict(datadir):
@@ -100,33 +126,41 @@ def get_first_user_rating_dict(datadir):
         user, movie, rating = next(ratings_stream)
         if(not user == "1"):
             break
-        ratings[int(movie)] = float(rating)
+        ratings[movie] = float(rating)
     return ratings
 
 
-def get_sample_ratings_dict(filepath, id_source='imdb'):
-    return None
+def get_sample_ratings_dict(links_datadir, filepath, id_source='imdb'):
+    """
+    Returns a ratings dict that maps (movielens id) -> (rating) for ratings in a given filepath
+    """
+    ratings_dict = {}
 
+    links = get_movie_links_dict(links_datadir, id_source)
+    for line in open(filepath, 'r'):
+        id, rating = tuple(line.split(" "))
+        id = id[2:]
+        rating = float(rating)
 
+        if id in links.inv:
+            ratings_dict[links.inv[id]] = rating
+
+    return ratings_dict
 
 
 def build_user_item_matrix(datadir):
     matrix = User_Movie_Matrix()
 
     for userId, movieId, rating in get_ratings_stream(datadir):
-        matrix.add_rating(int(userId), int(movieId), float(rating))
-
-    print("Done adding ratings")
+        matrix.add_rating(userId, movieId, float(rating))
 
     matrix.build_matrix()
     return matrix
 
 
-def movielens_ids_to_titles(datadir):
-    return None
-
-
 if __name__ == "__main__":
 
-    m = build_user_item_matrix("../data/small")
-    print(m.matrix)
+    datadir = "data/small"
+    rating_file = "data/sample_ratings.txt"
+
+    print(get_sample_ratings_dict(datadir, rating_file))
