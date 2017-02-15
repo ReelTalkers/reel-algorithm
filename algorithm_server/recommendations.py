@@ -42,12 +42,20 @@ def calculate_item_relevance_scores(ratings_matrix, user_similarity_profile):
     return user_similarity_profile.dot(ratings_matrix.matrix) / sum(user_similarity_profile.data)
 
 
-def convert_item_scores_to_movielens_ids(rating_matrix, item_scores):
-    return None
+def get_movielens_id_scores(rating_matrix, item_scores, top_k=100):
+    """
+    Returns an ordered dictionary containing the top-k higest scoring items in item_scores,
+    with the indices in item_scores converted to movie lens ids using the ratings matrix
+    """
+
+    movielens_items = ((ratings_matrix.get_movielens_id(i), item_scores[0, i]) for i in item_scores.indices)
+    items = sorted(movielens_items, key=lambda x: x[1], reverse=True)
+
+    return [x[0] for x in items[:top_k]]
 
 
 if __name__ == "__main__":
-    datadir = "../data/small"
+    datadir = "data/small"
 
     ratings_matrix = io_utils.build_user_item_matrix(datadir)
 
@@ -57,4 +65,4 @@ if __name__ == "__main__":
 
     relevance_scores = calculate_item_relevance_scores(ratings_matrix, user_similarity_profile)
 
-    print(relevance_scores)
+    print(get_movielens_id_scores(ratings_matrix, relevance_scores))
