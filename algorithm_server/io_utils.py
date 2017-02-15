@@ -1,4 +1,5 @@
 from scipy.sparse import *
+from bidict import bidict
 
 
 class User_Movie_Matrix:
@@ -6,7 +7,7 @@ class User_Movie_Matrix:
     def __init__(self):
         #Map the user and movie ids from the MovieLens dataset to indices in the User-Movie matrix
         self.user_id_index = {}
-        self.movie_id_index = {}
+        self.movie_id_index = bidict()
 
         self.temp_storage_dict = {}
         self.matrix = dok_matrix((1, 1))
@@ -16,6 +17,9 @@ class User_Movie_Matrix:
 
     def getrow(self, i):
         return self.matrix.getrow(i)
+
+    def get_movielens_id(self, matrix_ind):
+        return self.movie_id_index.inv[matrix_ind]
 
     def get_ratings_vector(self, preferences):
         """
@@ -60,6 +64,10 @@ def movie_description_file(datadir):
     return "%s/movies.csv" % datadir
 
 
+def movie_links_file(datadir):
+    return "%s/links.csv" % datadir
+
+
 def get_ratings_stream(datadir):
     """
     Returns a generator in which each item is a tuple with the following fields ("userId", "movieId", "rating")
@@ -67,6 +75,21 @@ def get_ratings_stream(datadir):
     for i, line in enumerate(open(ratings_file(datadir), "r")):
         if(i >= 1):
             yield tuple(str(line).strip().split(",")[:3])
+
+
+def get_movie_description_stream(datadir):
+    for i, line in enumerate(open(movie_description_file(datadir), "r")):
+        if(i >= 1):
+            t = str(line).strip().split(",")
+            if(len(t) > 3):
+                middle = "".join(x for x in t[1:-1])
+                t = (t[0], middle, t[-1])
+
+            yield(tuple(t))
+
+
+def get_movie_id_title_dict(datadir):
+    return {int(id): title for id, title, genre in get_movie_description_stream(datadir)}
 
 
 def get_first_user_rating_dict(datadir):
@@ -81,6 +104,12 @@ def get_first_user_rating_dict(datadir):
     return ratings
 
 
+def get_sample_ratings_dict(filepath, id_source='imdb'):
+    return None
+
+
+
+
 def build_user_item_matrix(datadir):
     matrix = User_Movie_Matrix()
 
@@ -91,6 +120,10 @@ def build_user_item_matrix(datadir):
 
     matrix.build_matrix()
     return matrix
+
+
+def movielens_ids_to_titles(datadir):
+    return None
 
 
 if __name__ == "__main__":
