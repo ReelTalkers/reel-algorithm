@@ -1,5 +1,6 @@
 import io_utils
 import scipy.sparse as sp
+import sklearn.metrics as sk
 
 
 def calculate_user_similarity_profile(ratings_matrix, new_user_reviews):
@@ -42,7 +43,7 @@ def calculate_item_relevance_scores(ratings_matrix, user_similarity_profile):
     return user_similarity_profile.dot(ratings_matrix.matrix) / sum(user_similarity_profile.data)
 
 
-def get_top_movielens_ids(rating_matrix, item_scores, original_ratings, top_k=100):
+def get_top_movielens_ids(ratings_matrix, item_scores, original_ratings, top_k=100):
     """
     Returns an ordered dictionary containing the top-k higest scoring items in item_scores,
     with the indices in item_scores converted to movie lens ids using the ratings matrix
@@ -59,13 +60,9 @@ def get_top_movielens_titles(movie_title_dict, top_movielens_ids):
     return [movie_title_dict[x] for x in top_movielens_ids]
 
 
-if __name__ == "__main__":
-    ratings_file = "data/sample_ratings.txt"
-    datadir = "data/small"
-
+def get_top_movie_titles(ratings_file, datadir):
     ratings_matrix = io_utils.build_user_item_matrix(datadir)
 
-    #new_user_ratings = io_utils.get_first_user_rating_dict(datadir)
     new_user_ratings = io_utils.get_sample_ratings_dict(datadir, ratings_file)
 
     user_similarity_profile = calculate_user_similarity_profile(ratings_matrix, new_user_ratings)
@@ -74,6 +71,13 @@ if __name__ == "__main__":
 
     top_movielens_ids = get_top_movielens_ids(ratings_matrix, relevance_scores, new_user_ratings.keys())
 
-    top_movielens_titles = get_top_movielens_titles(io_utils.get_movie_id_title_dict(datadir), top_movielens_ids)
+    return get_top_movielens_titles(io_utils.get_movie_id_title_dict(datadir), top_movielens_ids)
 
-    print("\n".join(x for x in top_movielens_titles))
+
+if __name__ == "__main__":
+    ratings_files = ["data/sample_users/andrew.txt", "data/sample_users/galen.txt"]
+    datadir = "data/small"
+
+    top_titles = [get_top_movie_titles(r, datadir) for r in ratings_files]
+
+    print(sk.jaccard_similarity_score(top_titles[0], top_titles[1]))

@@ -163,4 +163,8 @@ if __name__ == "__main__":
     datadir = "data/small"
     rating_file = "data/sample_ratings.txt"
 
-    print(get_sample_ratings_dict(datadir, rating_file))
+    title_dict = get_movie_id_title_dict(datadir)
+    sample_ratings = get_sample_ratings_dict(datadir, rating_file)
+
+    for id in sample_ratings:
+        print("%s %.2f" % (title_dict[id], sample_ratings[id]))
