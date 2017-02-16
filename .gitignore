@@ -1,3 +1,4 @@
-data/full/
+data/movielens/*
+!data/movielens/ml-latest-small/
 *.pyc
 sample_recommendations.txt

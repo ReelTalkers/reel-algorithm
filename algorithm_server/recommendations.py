@@ -1,6 +1,5 @@
 import io_utils
 import scipy.sparse as sp
-import sklearn.metrics as sk
 
 
 def calculate_user_similarity_profile(ratings_matrix, new_user_reviews):
@@ -78,6 +77,7 @@ if __name__ == "__main__":
     ratings_files = ["data/sample_users/andrew.txt", "data/sample_users/galen.txt"]
     datadir = "data/small"
 
-    top_titles = [get_top_movie_titles(r, datadir) for r in ratings_files]
+    top_titles = [set(get_top_movie_titles(r, datadir)) for r in ratings_files]
 
-    print(sk.jaccard_similarity_score(top_titles[0], top_titles[1]))
+    print(len(top_titles[0] & top_titles[1]))
+    print(len(top_titles[0] | top_titles[1]))
