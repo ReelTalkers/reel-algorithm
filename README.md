@@ -34,11 +34,7 @@ The data we use to make movie recommendations is compiled by researchers in the 
 
 * We are using the [MoviesLens latest dataset](http://files.grouplens.org/datasets/movielens/ml-latest.zip).
 * Other (smaller) datasets are available on [MovieLens datasets page](https://grouplens.org/datasets/movielens/).
-
-###Data Setup
-
-* Download the zip file into the `data/` directory of the project.
-* Decompress and rename the subdirectory to `full/`
+* Download the appropriate dataset into the `data/movielens/` directory and decompress
 
 ##Data Description
 
