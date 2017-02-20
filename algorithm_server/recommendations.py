@@ -1,7 +1,7 @@
 import io_utils
 import scipy.sparse as sp
-from collections import *
-from itertools import *
+from collections import OrderedDict
+from itertools import islice
 
 
 def group_recommendation_vector_least_misery(ratings_matrix, user_ratings_list):
