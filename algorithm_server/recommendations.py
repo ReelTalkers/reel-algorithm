@@ -1,5 +1,7 @@
 import io_utils
 import scipy.sparse as sp
+from collections import *
+from itertools import *
 
 
 def calculate_user_similarity_profile(ratings_matrix, new_user_reviews):
@@ -27,7 +29,12 @@ def calculate_user_similarity_profile(ratings_matrix, new_user_reviews):
 
 def calculate_pairwise_user_similarity(user1_preferences, user2_preferences):
     """
-    Both user preferences parameters are sparse 1x|M| vectors corresponding to movie ratings
+    Both user preferences parameters are sparse 1x|M| vectors corresponding to movie ratings.
+    Computes a scalar value (float in range (0, 1)), that corresponds to how similar the users are.
+
+    User similarity = (number of movie agreements) / (number of shared reviews)
+    A movie agreement is defined as a movie for which the ratings of the two users were within 2 stars of each other
+    A shared review is defined as a movie for which both users provided a review
 
     """
 
@@ -39,10 +46,16 @@ def calculate_pairwise_user_similarity(user1_preferences, user2_preferences):
 
 
 def calculate_item_relevance_scores(ratings_matrix, user_similarity_profile):
+    """
+    Calculates item relevance scores for each item in the |U|x|M| ratings matrix
+
+    user_similarity_profile is a 1x|U| user similarity vector, where each entry corresponds to the similarity between
+    the user we are generating recommendations for and a user entry in the ratings_matrix
+    """
     return user_similarity_profile.dot(ratings_matrix.matrix) / sum(user_similarity_profile.data)
 
 
-def get_top_movielens_ids(ratings_matrix, item_scores, original_ratings, top_k=100):
+def get_ranked_movielens_ids(ratings_matrix, item_scores, original_ratings):
     """
     Returns an ordered dictionary containing the top-k higest scoring items in item_scores,
     with the indices in item_scores converted to movie lens ids using the ratings matrix
@@ -50,16 +63,33 @@ def get_top_movielens_ids(ratings_matrix, item_scores, original_ratings, top_k=1
 
     movielens_items = ((ratings_matrix.get_movielens_id(i), item_scores[0, i]) for i in item_scores.indices)
     movielens_items = filter(lambda x: x[0] not in original_ratings, movielens_items)
-    items = sorted(movielens_items, key=lambda x: x[1], reverse=True)
+    movielens_items = sorted(movielens_items, key=lambda x: x[1], reverse=True)
 
-    return [x[0] for x in items[:top_k]]
+    indexed_items = OrderedDict()
+    for movie, score in movielens_items:
+        indexed_items[movie] = score
+
+    return indexed_items
 
 
-def get_top_movielens_titles(movie_title_dict, top_movielens_ids):
-    return [movie_title_dict[x] for x in top_movielens_ids]
+def get_top_k_movielens_ids(ranked_movielens_ids, top_k=10):
+    """
+    ranked_movielens_ids is an OrderedDict mapping (movielens_id) -> (score) with monotonically decreasing scores
+    Typically obtained through the get_ranked_movielens_ids() function
+
+    Returns a list of the top-k movielens ids from this collection
+    """
+    return list(islice(ranked_movielens_ids, top_k))
 
 
-def get_top_movie_titles(ratings_file, datadir):
+def get_ranked_movielens_ids_from_file(ratings_file, datadir):
+    """
+    Gets an OrderedDict mapping (movielens_id) -> (score) with monotonically decreasing scores
+
+    ratings_file is the filepath of a text file containing (imdb id) -> (rating) pairs
+    datadir is the filepath of a directory containing all movie data
+
+    """
     ratings_matrix = io_utils.build_user_item_matrix(datadir)
 
     new_user_ratings = io_utils.get_sample_ratings_dict(datadir, ratings_file)
@@ -68,16 +98,11 @@ def get_top_movie_titles(ratings_file, datadir):
 
     relevance_scores = calculate_item_relevance_scores(ratings_matrix, user_similarity_profile)
 
-    top_movielens_ids = get_top_movielens_ids(ratings_matrix, relevance_scores, new_user_ratings.keys())
-
-    return get_top_movielens_titles(io_utils.get_movie_id_title_dict(datadir), top_movielens_ids)
+    return get_ranked_movielens_ids(ratings_matrix, relevance_scores, new_user_ratings.keys())
 
 
 if __name__ == "__main__":
     ratings_files = ["data/sample_users/andrew.txt", "data/sample_users/galen.txt"]
-    datadir = "data/small"
+    datadir = "data/movielens/ml-latest-small"
 
-    top_titles = [set(get_top_movie_titles(r, datadir)) for r in ratings_files]
-
-    print(len(top_titles[0] & top_titles[1]))
-    print(len(top_titles[0] | top_titles[1]))
+    print(get_top_k_movielens_ids(get_ranked_movielens_ids_from_file(ratings_files[0], datadir)))
