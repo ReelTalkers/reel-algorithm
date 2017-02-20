@@ -4,7 +4,42 @@ from collections import *
 from itertools import *
 
 
+def group_recommendation_vector_least_misery(ratings_matrix, user_ratings_list):
+    """
+    Computes a 1x|M| movie recommendation vector for a group of users
+    For each movie, uses the minumum score from all users as the group score
+
+    ratings_matrix is a |U|x|M| matrix composed of prior user ratings
+    user_ratings_list is a list of dictionaries, one dictionary for each user that is part of the group
+        Each dictionary maps (movielens_id) -> (user rating) for that particular user
+
+
+    """
+    return None
+
+
+def group_recommendation_vector_disagreement_variance(ratings_matrix, user_ratings_list):
+    """
+    Computes a 1x|M| movie recommendation vector for a group of users
+    For each movie, a group score is calculated using the average score of the movie among the group,
+        as well as the variance of the score among the group
+
+    ratings_matrix is a |U|x|M| matrix composed of prior user ratings
+    user_ratings_list is a list of dictionaries, one dictionary for each user that is part of the group
+        Each dictionary maps (movielens_id) -> (user rating) for that particular user
+
+    """
+    return None
+
+
 def single_user_recommendation_vector(ratings_matrix, new_user_ratings):
+    """
+    Computes a 1x|M| movie recommendation vector for a given user.
+
+    ratings_matrix is a |U|x|M| matrix composed of prior user ratings
+    new_user_ratings is a dictionary mapping (movielens id) -> (user rating)
+        for the user we are generating recommendations for
+    """
 
     user_similarity_profile = calculate_user_similarity_profile(ratings_matrix, new_user_ratings)
 
@@ -13,7 +48,7 @@ def single_user_recommendation_vector(ratings_matrix, new_user_ratings):
 
 def calculate_user_similarity_profile(ratings_matrix, new_user_ratings):
     """
-    ratings_matrix is a |U|x|M| sparse matrix
+    ratings_matrix is a |U|x|M| matrix composed of prior user ratings
 
     new_user_ratings is a dictionary that maps (movielens id) -> (user rating)
 
@@ -89,7 +124,7 @@ def get_top_k_movielens_ids(ranked_movielens_ids, top_k):
     return list(islice(ranked_movielens_ids, top_k))
 
 
-def get_ranked_movielens_ids_from_file(ratings_file, datadir, top_k=None):
+def get_ranked_movielens_ids_from_file(ratings_file, datadir):
     """
     Gets an OrderedDict mapping (movielens_id) -> (score) with monotonically decreasing scores
 
@@ -110,4 +145,5 @@ if __name__ == "__main__":
     ratings_files = ["data/sample_users/andrew.txt", "data/sample_users/galen.txt"]
     datadir = "data/movielens/ml-latest-small"
 
-    print(get_top_k_movielens_ids(get_ranked_movielens_ids_from_file(ratings_files[0], datadir)))
+    ranked_ids = get_ranked_movielens_ids_from_file(ratings_files[0], datadir)
+    print(get_top_k_movielens_ids(ranked_ids, 10))
