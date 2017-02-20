@@ -4,11 +4,18 @@ from collections import *
 from itertools import *
 
 
-def calculate_user_similarity_profile(ratings_matrix, new_user_reviews):
+def single_user_recommendation_vector(ratings_matrix, new_user_ratings):
+
+    user_similarity_profile = calculate_user_similarity_profile(ratings_matrix, new_user_ratings)
+
+    return calculate_item_relevance_scores(ratings_matrix, user_similarity_profile)
+
+
+def calculate_user_similarity_profile(ratings_matrix, new_user_ratings):
     """
     ratings_matrix is a |U|x|M| sparse matrix
 
-    new_user_reviews is a dictionary that maps (movielens id) -> (user rating)
+    new_user_ratings is a dictionary that maps (movielens id) -> (user rating)
 
     We want to return a 1x|U| dense user similiarity vector
 
@@ -16,13 +23,13 @@ def calculate_user_similarity_profile(ratings_matrix, new_user_reviews):
     num_users, num_movies = ratings_matrix.get_shape()
 
     #Converts the user reviews dictionary to a 1x|M| vector
-    #of user reviews with the same indices as the ratings matrix
-    vector_user_reviews = ratings_matrix.get_ratings_vector(new_user_reviews)
+    #of user ratings with the same indices as the ratings matrix
+    vector_user_ratings = ratings_matrix.get_ratings_vector(new_user_ratings)
 
     user_similarities = sp.dok_matrix((1, num_users))
     for i in range(num_users):
 
-        user_similarities[0, i] = calculate_pairwise_user_similarity(ratings_matrix.getrow(i), vector_user_reviews)
+        user_similarities[0, i] = calculate_pairwise_user_similarity(ratings_matrix.getrow(i), vector_user_ratings)
 
     return user_similarities.tocsr()
 
@@ -72,7 +79,7 @@ def get_ranked_movielens_ids(ratings_matrix, item_scores, original_ratings):
     return indexed_items
 
 
-def get_top_k_movielens_ids(ranked_movielens_ids, top_k=10):
+def get_top_k_movielens_ids(ranked_movielens_ids, top_k):
     """
     ranked_movielens_ids is an OrderedDict mapping (movielens_id) -> (score) with monotonically decreasing scores
     Typically obtained through the get_ranked_movielens_ids() function
@@ -82,7 +89,7 @@ def get_top_k_movielens_ids(ranked_movielens_ids, top_k=10):
     return list(islice(ranked_movielens_ids, top_k))
 
 
-def get_ranked_movielens_ids_from_file(ratings_file, datadir):
+def get_ranked_movielens_ids_from_file(ratings_file, datadir, top_k=None):
     """
     Gets an OrderedDict mapping (movielens_id) -> (score) with monotonically decreasing scores
 
@@ -94,9 +101,7 @@ def get_ranked_movielens_ids_from_file(ratings_file, datadir):
 
     new_user_ratings = io_utils.get_sample_ratings_dict(datadir, ratings_file)
 
-    user_similarity_profile = calculate_user_similarity_profile(ratings_matrix, new_user_ratings)
-
-    relevance_scores = calculate_item_relevance_scores(ratings_matrix, user_similarity_profile)
+    relevance_scores = single_user_recommendation_vector(ratings_matrix, new_user_ratings)
 
     return get_ranked_movielens_ids(ratings_matrix, relevance_scores, new_user_ratings.keys())
 
