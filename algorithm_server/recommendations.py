@@ -13,9 +13,19 @@ def group_recommendation_vector_least_misery(ratings_matrix, user_ratings_list):
     user_ratings_list is a list of dictionaries, one dictionary for each user that is part of the group
         Each dictionary maps (movielens_id) -> (user rating) for that particular user
 
-
     """
-    return None
+
+    #Look into this article to find a potentially faster way to do this computation via numpy
+    #http://stackoverflow.com/questions/39277638/element-wise-minimum-of-multiple-vectors-in-numpy
+
+    rec_vectors = [single_user_recommendation_vector(ratings_matrix, u) for u in user_ratings_list]
+
+    group_rec_vector = sp.dok_matrix(rec_vectors.shape)
+
+    for i in range(group_rec_vector.shape[1]):
+        group_rec_vector[0, i] = min(r[0, i] for r in rec_vectors)
+
+    return group_rec_vector.tocsr()
 
 
 def group_recommendation_vector_disagreement_variance(ratings_matrix, user_ratings_list):
