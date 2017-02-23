@@ -28,7 +28,7 @@ def group_recommendation_vector_least_misery(ratings_matrix, user_ratings_list):
     return group_rec_vector.tocsr()
 
 
-def group_recommendation_vector_disagreement_variance(ratings_matrix, user_ratings_list):
+def group_recommendation_vector_disagreement_variance(ratings_matrix, user_ratings_list, mean_weight=.2):
     """
     Computes a 1x|M| movie recommendation vector for a group of users
     For each movie, a group score is calculated using the average score of the movie among the group,
@@ -39,7 +39,17 @@ def group_recommendation_vector_disagreement_variance(ratings_matrix, user_ratin
         Each dictionary maps (movielens_id) -> (user rating) for that particular user
 
     """
-    return None
+    rec_vectors = [single_user_recommendation_vector(ratings_matrix, u) for u in user_ratings_list]
+
+    group_rec_vector = sp.dok_matrix(rec_vectors[0].shape)
+
+    for i in range(group_rec_vector.shape[1]):
+        col = [r[0, i] for r in rec_vectors]
+        mean = sum(col) / len(col)
+        var = sum(i - mean for i in col) / sum(mean)
+        group_rec_vector[0, i] = mean_weight * mean + (1 - mean_weight) * (1 - var)
+
+    return group_rec_vector.tocsr()
 
 
 def single_user_recommendation_vector(ratings_matrix, new_user_ratings):
