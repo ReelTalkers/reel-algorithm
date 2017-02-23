@@ -20,7 +20,7 @@ def group_recommendation_vector_least_misery(ratings_matrix, user_ratings_list):
 
     rec_vectors = [single_user_recommendation_vector(ratings_matrix, u) for u in user_ratings_list]
 
-    group_rec_vector = sp.dok_matrix(rec_vectors.shape)
+    group_rec_vector = sp.dok_matrix(rec_vectors[0].shape)
 
     for i in range(group_rec_vector.shape[1]):
         group_rec_vector[0, i] = min(r[0, i] for r in rec_vectors)
@@ -151,9 +151,28 @@ def get_ranked_movielens_ids_from_file(ratings_file, datadir):
     return get_ranked_movielens_ids(ratings_matrix, relevance_scores, new_user_ratings.keys())
 
 
+def get_group_movielens_ids_from_file(ratings_files, datadir, method=group_recommendation_vector_least_misery):
+
+    ratings_matrix = io_utils.build_user_item_matrix(datadir)
+
+    user_ratings = [io_utils.get_sample_ratings_dict(datadir, r) for r in ratings_files]
+
+    rated_movies = set().union(*[u.keys() for u in user_ratings])
+
+    return get_ranked_movielens_ids(ratings_matrix, method(ratings_matrix, user_ratings), rated_movies)
+
+
 if __name__ == "__main__":
     ratings_files = ["data/sample_users/andrew.txt", "data/sample_users/galen.txt"]
     datadir = "data/movielens/ml-latest-small"
+    num_movies = 100
 
-    ranked_ids = get_ranked_movielens_ids_from_file(ratings_files[0], datadir)
-    print(get_top_k_movielens_ids(ranked_ids, 10))
+    movie_titles = io_utils.get_movie_id_title_dict(datadir)
+
+    andrew_ids, galen_ids = [get_top_k_movielens_ids(get_ranked_movielens_ids_from_file(r, datadir), num_movies) for r in ratings_files]
+    group_ids = get_top_k_movielens_ids(get_group_movielens_ids_from_file(ratings_files, datadir), num_movies)
+
+    print('Andrew\tGalen\tGroup\n')
+    for i in range(num_movies):
+        titles = [movie_titles[u[i]] for u in [andrew_ids, galen_ids, group_ids]]
+        print("\t".join(titles))
