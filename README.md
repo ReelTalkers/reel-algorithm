@@ -36,7 +36,7 @@ The data we use to make movie recommendations is compiled by researchers in the 
 * Other (smaller) datasets are available on [MovieLens datasets page](https://grouplens.org/datasets/movielens/).
 * Download the appropriate dataset into the `data/movielens/` directory and decompress
 
-Alternatively, download all the datasets at once by typing `data-download.sh` from the root of this repository.
+Alternatively, download all the datasets at once by typing `bash data-download.sh` from the root of this repository.
 
 ##Data Description
 
