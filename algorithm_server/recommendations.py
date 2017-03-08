@@ -1,4 +1,4 @@
-import algorithm_server.io_utils as io_utils
+import io_utils
 import scipy.sparse as sp
 from collections import OrderedDict
 from itertools import islice

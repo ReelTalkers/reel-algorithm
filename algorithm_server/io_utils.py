@@ -158,13 +158,19 @@ def build_user_item_matrix(datadir):
     return matrix
 
 
+def ratings_file_to_json_query(ratings_file):
+    query = {}
+    query["ratings"] = []
+    for line in open(ratings_file, "r"):
+        rating_obj = {}
+        rating_obj["imdb"], rating_obj["rating"] = line.strip().split(" ")
+        query["ratings"].append(rating_obj)
+    return query
+
+
 if __name__ == "__main__":
 
-    datadir = "data/small"
-    rating_file = "data/sample_ratings.txt"
+    data_files = ["data/sample_users/%s" % s for s in ["andrew.txt", "galen.txt"]]
 
-    title_dict = get_movie_id_title_dict(datadir)
-    sample_ratings = get_sample_ratings_dict(datadir, rating_file)
-
-    for id in sample_ratings:
-        print("%s %.2f" % (title_dict[id], sample_ratings[id]))
+    for df in data_files:
+        print(ratings_file_to_json_query(df))
