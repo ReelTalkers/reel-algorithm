@@ -1,4 +1,4 @@
-import io_utils
+import algorithm_server.io_utils as io_utils
 import scipy.sparse as sp
 from collections import OrderedDict
 from itertools import islice
@@ -46,7 +46,7 @@ def group_recommendation_vector_disagreement_variance(ratings_matrix, user_ratin
     for i in range(group_rec_vector.shape[1]):
         col = [r[0, i] for r in rec_vectors]
         mean = sum(col) / len(col)
-        var = sum(i - mean for i in col) / sum(mean)
+        var = sum((i - mean) ** 2 for i in col) / len(col)
         group_rec_vector[0, i] = mean_weight * mean + (1 - mean_weight) * (1 - var)
 
     return group_rec_vector.tocsr()
@@ -163,6 +163,14 @@ def get_ranked_movielens_ids_from_file(ratings_file, datadir):
 
 def get_group_movielens_ids_from_file(ratings_files, datadir, method=group_recommendation_vector_least_misery):
 
+    """
+    Gets an OrderedDict mapping (movielens_id) -> (score) with monotonically decreasing scores
+
+    ratings_file is the filepath of a text file containing (imdb id) -> (rating) pairs
+    datadir is the filepath of a directory containing all movie data
+
+    """
+
     ratings_matrix = io_utils.build_user_item_matrix(datadir)
 
     user_ratings = [io_utils.get_sample_ratings_dict(datadir, r) for r in ratings_files]
@@ -170,19 +178,3 @@ def get_group_movielens_ids_from_file(ratings_files, datadir, method=group_recom
     rated_movies = set().union(*[u.keys() for u in user_ratings])
 
     return get_ranked_movielens_ids(ratings_matrix, method(ratings_matrix, user_ratings), rated_movies)
-
-
-if __name__ == "__main__":
-    ratings_files = ["data/sample_users/andrew.txt", "data/sample_users/galen.txt"]
-    datadir = "data/movielens/ml-latest-small"
-    num_movies = 100
-
-    movie_titles = io_utils.get_movie_id_title_dict(datadir)
-
-    andrew_ids, galen_ids = [get_top_k_movielens_ids(get_ranked_movielens_ids_from_file(r, datadir), num_movies) for r in ratings_files]
-    group_ids = get_top_k_movielens_ids(get_group_movielens_ids_from_file(ratings_files, datadir), num_movies)
-
-    print('Andrew\tGalen\tGroup\n')
-    for i in range(num_movies):
-        titles = [movie_titles[u[i]] for u in [andrew_ids, galen_ids, group_ids]]
-        print("\t".join(titles))
