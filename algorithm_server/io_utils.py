@@ -1,5 +1,6 @@
 from scipy.sparse import *
 from bidict import bidict
+import json
 
 
 class User_Movie_Matrix:
@@ -158,19 +159,37 @@ def build_user_item_matrix(datadir):
     return matrix
 
 
-def ratings_file_to_json_query(ratings_file):
-    query = {}
-    query["ratings"] = []
-    for line in open(ratings_file, "r"):
+def get_json_format_ratings_list(ratings_file):
+    ratings = []
+    for line in open(ratings_file, 'r'):
         rating_obj = {}
         rating_obj["imdb"], rating_obj["rating"] = line.strip().split(" ")
-        query["ratings"].append(rating_obj)
-    return query
+        ratings.append(rating_obj)
+    return ratings
+
+
+def get_json_query(ratings_file):
+    query = {}
+    query["ratings"] = get_json_format_ratings_list(ratings_file)
+    return json.dumps(query)
+
+
+def get_group_json_query(ratings_files):
+    query = {}
+    query["users"] = []
+    for i, file in enumerate(ratings_files):
+        user_obj = {}
+        user_obj["user"], user_obj["ratings"] = file, get_json_format_ratings_list(file)
+        query["users"].append(user_obj)
+    return json.dumps(query)
 
 
 if __name__ == "__main__":
 
     data_files = ["data/sample_users/%s" % s for s in ["andrew.txt", "galen.txt"]]
 
-    for df in data_files:
-        print(ratings_file_to_json_query(df))
+    print("Single user json:")
+    print(get_json_query(data_files[0]))
+
+    print("\n\nGroup json:")
+    print(get_group_json_query(data_files))
