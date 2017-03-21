@@ -184,12 +184,5 @@ def get_group_json_query(ratings_files):
     return json.dumps(query)
 
 
-if __name__ == "__main__":
-
-    data_files = ["data/sample_users/%s" % s for s in ["andrew.txt", "galen.txt"]]
-
-    print("Single user json:")
-    print(get_json_query(data_files[0]))
-
-    print("\n\nGroup json:")
-    print(get_group_json_query(data_files))
+def json_ratings_to_dict(json_ratings, movielens_to_imdb):
+    return {movielens_to_imdb.inv[x["imdb"][2:]] : float(x["rating"]) for x in json_ratings["ratings"]}
