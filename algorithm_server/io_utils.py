@@ -185,4 +185,11 @@ def get_group_json_query(ratings_files):
 
 
 def json_ratings_to_dict(json_ratings, movielens_to_imdb):
-    return {movielens_to_imdb.inv[x["imdb"][2:]] : float(x["rating"]) for x in json_ratings["ratings"]}
+    ratings = {}
+    for item in json_ratings["ratings"]:
+        imdb_id = item["imdb"][2:]
+        rating = float(item["rating"])
+        if(imdb_id in movielens_to_imdb.inv):
+            ratings[movielens_to_imdb.inv[imdb_id]] = rating
+
+    return ratings

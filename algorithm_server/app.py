@@ -5,20 +5,15 @@ import io_utils
 
 app = Flask(__name__)
 
-datadir = "data/movielens/ml-latest-small"
-ratings_matrix = io_utils.build_user_item_matrix(datadir)
-movielens_to_imdb_bidict = io_utils.get_movie_links_dict(datadir, 'imdb')
-
-
 @app.route('/recommendations', methods=['POST'])
 def single_user_recommendations():
-	new_user_ratings = io_utils.json_ratings_to_dict(request.get_json(), movielens_to_imdb_bidict)
-	relevance_scores = recommendations.single_user_recommendation_vector(ratings_matrix, new_user_ratings)
+    new_user_ratings = io_utils.json_ratings_to_dict(request.get_json(), movielens_to_imdb_bidict)
+    relevance_scores = recommendations.single_user_recommendation_vector(ratings_matrix, new_user_ratings)
 
-	ranked_ids = recommendations.get_ranked_movielens_ids(ratings_matrix, relevance_scores, new_user_ratings.keys())
-	movielens_top_k = recommendations.get_top_k_movielens_ids(ranked_ids, 100)
+    ranked_ids = recommendations.get_ranked_movielens_ids(ratings_matrix, relevance_scores, new_user_ratings.keys())
+    movielens_top_k = recommendations.get_top_k_movielens_ids(ranked_ids, 100)
 
-	return jsonify(["tt" + movielens_to_imdb_bidict[x] for x in movielens_top_k])
+    return jsonify(["tt" + movielens_to_imdb_bidict[x] for x in movielens_top_k])
 
 
 @app.route('/group_recommendations', methods=['POST'])
@@ -27,4 +22,11 @@ def group_recommendations():
 
 
 if __name__ == '__main__':
+    global ratings_matrix
+    global movielens_to_imdb_bidict
+
+    datadir = "data/movielens/ml-latest-small"
+    ratings_matrix = io_utils.build_user_item_matrix(datadir)
+    movielens_to_imdb_bidict = io_utils.get_movie_links_dict(datadir, 'imdb')
+
     app.run(debug=True)
