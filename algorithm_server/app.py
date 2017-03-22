@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 import recommendations
 import io_utils
+import argparse
 
 
 app = Flask(__name__)
@@ -36,7 +37,14 @@ if __name__ == '__main__':
     global ratings_matrix
     global movielens_to_imdb_bidict
 
-    datadir = "data/movielens/ml-latest-small"
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--datadir',type=str,help='Data directory of movielens dataset.')
+
+    parser.set_defaults(datadir="data/movielens/ml-latest-small")
+
+    args = parser.parse_args()
+
+    datadir = args.datadir
     ratings_matrix = io_utils.build_user_item_matrix(datadir)
     movielens_to_imdb_bidict = io_utils.get_movie_links_dict(datadir, 'imdb')
 
