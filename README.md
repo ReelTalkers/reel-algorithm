@@ -63,6 +63,20 @@ JSON:
 }
 ```
 
+### Group Recommendations
+URL: http://localhost:5000/group_recommendations
+JSON:
+
+```
+{
+	"group": string
+	"num_recs": int (optional, defaults to 100)
+	"users": list of single user recommendations JSON (without "num_recs" field)
+}
+
+```
+
+
 
 
 ## Data Description
