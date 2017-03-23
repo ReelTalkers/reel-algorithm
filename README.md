@@ -38,6 +38,33 @@ The data we use to make movie recommendations is compiled by researchers in the 
 
 Alternatively, download all the datasets at once by typing `bash data-download.sh` from the root of this repository.
 
+## API
+
+Send all queries to localhost port 5000 as POST requests with a corresponding JSON file in the data section.
+
+### Single User Recommendations
+URL: http://localhost:5000/recommendations
+JSON:
+
+```
+{
+	"user": string,
+	"num_recs": int (optional, defaults to 100)
+	"ratings": [
+		{
+			"rating": string (must be to star rating between 0.5 and 5.0)
+			"imdb": string (must be valid IMDB identifier)
+
+		},
+
+		...
+
+	]
+}
+```
+
+
+
 ## Data Description
 
 The MovieLens datasets contains 3 csv files that we are using data from.
