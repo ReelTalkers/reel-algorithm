@@ -44,6 +44,7 @@ Send all queries to localhost port 5000 as POST requests with a corresponding JS
 
 ### Single User Recommendations
 URL: http://localhost:5000/recommendations
+
 JSON:
 
 ```
@@ -65,6 +66,7 @@ JSON:
 
 ### Group Recommendations
 URL: http://localhost:5000/group_recommendations
+
 JSON:
 
 ```
