@@ -64,6 +64,20 @@ JSON:
 }
 ```
 
+Return JSON:
+
+Returns a list of "num_recs" recommendations ordered by score.
+
+```
+[
+	"imdb": string
+	"imdb": string
+	...
+]
+
+
+```
+
 ### Group Recommendations
 URL: http://localhost:5000/group_recommendations
 
@@ -77,6 +91,13 @@ JSON:
 }
 
 ```
+
+Return JSON:
+
+Same as for single user recommendations.
+
+
+
 
 
 
