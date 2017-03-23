@@ -140,8 +140,9 @@ JSON:
 				]
 	]
 }
-
 ```
+
+Return JSON: Exactly the same as for single user recommendations
 
 
 
