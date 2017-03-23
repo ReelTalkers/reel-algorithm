@@ -1,10 +1,10 @@
-#Reel Algorithm
+# Reel Algorithm
 
 Source code for the Reel movie recommender algorithm and movie recommendation server are contained in this repository.
 
 The movie recommender algorithm uses the MovieLens dataset as past data to derive new recommendations. This dataset is not included with this repository. Instructions on how to obtain this dataset are included in the [obtaining data subsection](#obtaining-data).
 
-##Setup
+## Setup
 
 * Install `Python 3.4.3` (and `pip`)
   * On Ubuntu: `sudo apt-get install python3`
@@ -28,7 +28,7 @@ The movie recommender algorithm uses the MovieLens dataset as past data to deriv
 
 If you run into any questions, consult [this article](http://timmyreilly.azurewebsites.net/python-with-ubuntu-on-windows/).
 
-###Obtaining Data
+### Obtaining Data
 
 The data we use to make movie recommendations is compiled by researchers in the University of Minnesota GroupLens Research group.
 
@@ -38,7 +38,7 @@ The data we use to make movie recommendations is compiled by researchers in the 
 
 Alternatively, download all the datasets at once by typing `bash data-download.sh` from the root of this repository.
 
-##Data Description
+## Data Description
 
 The MovieLens datasets contains 3 csv files that we are using data from.
 
@@ -57,7 +57,7 @@ The MovieLens datasets contains 3 csv files that we are using data from.
   * `tmdbId`: tmdb identifier for given movie
 
 
-##Development
+## Development
 
 * Do all development work inside of a virtualenv. Instructions for setup of virtualenv are descried above.
   * After installing new dependencies with `pip` on your local machine, update the requirements.txt file so that your environment will be reproducible.
