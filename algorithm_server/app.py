@@ -6,8 +6,11 @@ import argparse
 
 app = Flask(__name__)
 
+
 @app.route('/recommendations', methods=['POST'])
 def single_user_recommendations():
+    print(request.get_json())
+
     new_user_ratings = io_utils.json_ratings_to_dict(request.get_json()["ratings"], movielens_to_imdb_bidict)
     relevance_scores = recommendations.single_user_recommendation_vector(ratings_matrix, new_user_ratings)
 
@@ -19,6 +22,7 @@ def single_user_recommendations():
 
 @app.route('/group_recommendations', methods=['POST'])
 def group_recommendations():
+    print(request.get_json())
 
     user_ratings = [io_utils.json_ratings_to_dict(u["ratings"], movielens_to_imdb_bidict) for u in request.get_json()["users"]]
 
@@ -38,7 +42,7 @@ if __name__ == '__main__':
     global movielens_to_imdb_bidict
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--datadir',type=str,help='Data directory of movielens dataset.')
+    parser.add_argument('--datadir', type=str, help='Data directory of movielens dataset.')
 
     parser.set_defaults(datadir="data/movielens/ml-latest-small")
 
