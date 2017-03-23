@@ -28,6 +28,16 @@ The movie recommender algorithm uses the MovieLens dataset as past data to deriv
 
 If you run into any questions, consult [this article](http://timmyreilly.azurewebsites.net/python-with-ubuntu-on-windows/).
 
+## Running Server
+
+If you have already completed all setup instructions at least once,
+simply follow the following instructions to run the server in detached mode:
+
+```
+workon venv
+python algorithm-server/app.py &
+```
+
 ### Obtaining Data
 
 The data we use to make movie recommendations is compiled by researchers in the University of Minnesota GroupLens Research group.
@@ -143,8 +153,6 @@ JSON:
 ```
 
 Return JSON: Exactly the same as for single user recommendations
-
-
 
 
 ## Data Description
