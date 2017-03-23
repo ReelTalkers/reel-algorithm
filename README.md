@@ -50,7 +50,8 @@ JSON:
 ```
 {
 	"user": string,
-	"num_recs": int (optional, defaults to 100)
+	"quantity": int (optional, defaults to 100)
+	"is_cached": boolean (should always be false, mainly for compatability )
 	"ratings": [
 		{
 			"rating": string (must be to star rating between 0.5 and 5.0)
@@ -66,7 +67,7 @@ JSON:
 
 Return JSON:
 
-Returns a list of "num_recs" recommendations ordered by score.
+Returns a list of "quantity" recommendations ordered by score.
 
 ```
 [
@@ -74,7 +75,6 @@ Returns a list of "num_recs" recommendations ordered by score.
 	"imdb": string
 	...
 ]
-
 
 ```
 
@@ -86,8 +86,8 @@ JSON:
 ```
 {
 	"group": string
-	"num_recs": int (optional, defaults to 100)
-	"users": list of single user recommendations JSON (without "num_recs" field)
+	"quantity": int (optional, defaults to 100)
+	"users": list of single user recommendations JSON (without "quantity" field)
 }
 
 ```
@@ -97,7 +97,51 @@ Return JSON:
 Same as for single user recommendations.
 
 
+### Single User Relevance Scores
+URL: http://localhost:5000/relevance_scores
 
+JSON: Exactly the same as for single user recommendations
+
+Return JSON:
+
+```
+[
+	{
+		"imdb": string
+		"score": string (corresponds to float between 0 and 1)
+	},
+
+	... (total of "quantity" movie scores)
+]
+
+```
+
+### Group Recommendation using Cached Data
+URL: http://localhost:5000/group_recommendations_using_cache
+
+JSON:
+
+```
+{
+	"group": string
+	"quantity": int (optional, defaults to 100)
+	"users": [
+		list of either
+			single user recommendation query
+			OR
+			single user recommendation query with following replacements:
+				"is_cached": True
+				"ratings" = [
+					{
+						"imdb": string
+						"score": string
+					}
+
+				]
+	]
+}
+
+```
 
 
 
