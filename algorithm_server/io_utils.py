@@ -42,7 +42,7 @@ class User_Movie_Matrix:
     def add_rating(self, user, movie, rating):
         self.update_index(self.user_id_index, user)
         self.update_index(self.movie_id_index, movie)
-        self.temp_storage_dict[(user, movie)] = rating
+        self.temp_storage_dict[(user, movie)] = rating - 3
 
     def update_index(self, index, identifier):
         if(identifier not in index):
@@ -172,6 +172,13 @@ def get_json_query(ratings_file):
     query = {}
     query["ratings"] = get_json_format_ratings_list(ratings_file)
     return json.dumps(query)
+
+
+def read_json_from_file(filename):
+    f = open(filename, "r")
+    data = dict(json.loads(f.read()))
+    f.close()
+    return data
 
 
 def get_group_json_query(ratings_files):

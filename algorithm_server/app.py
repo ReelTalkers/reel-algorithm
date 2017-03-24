@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify
-import recommendations
-import io_utils
-import argparse
+import algorithm_server.recommendations as recommendations
+import algorithm_server.io_utils as io_utils
 
 
 app = Flask(__name__)
@@ -37,19 +36,14 @@ def group_recommendations():
     return jsonify(["tt" + movielens_to_imdb_bidict[x] for x in movielens_top_k])
 
 
-if __name__ == '__main__':
+def set_globals(datadir):
     global ratings_matrix
     global movielens_to_imdb_bidict
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--datadir', type=str, help='Data directory of movielens dataset.')
-
-    parser.set_defaults(datadir="data/movielens/ml-latest-small")
-
-    args = parser.parse_args()
-
-    datadir = args.datadir
     ratings_matrix = io_utils.build_user_item_matrix(datadir)
     movielens_to_imdb_bidict = io_utils.get_movie_links_dict(datadir, 'imdb')
 
+
+def start_server(datadir):
+    set_globals(datadir)
     app.run(debug=True)
