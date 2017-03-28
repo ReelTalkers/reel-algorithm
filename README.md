@@ -64,9 +64,9 @@ http://localhost:5000/recommendations
 	"group": string
 	"quantity": int (optional, defaults to 100)
 	"users": [
-		"is_cached": boolean
-						True -> ratings = list of ratings
-						False -> ratings = movie relevance scores
+		"is_cached": boolean (optional, defaults to False)
+						False -> ratings = list of ratings
+						True -> ratings = movie relevance scores
 		"ratings": either list of ratings or list of movie relevance scores
 }
 ```
@@ -80,7 +80,7 @@ List of ratings format:
 		"rating": float (must be star rating between .5 and 5.0)
 	}, 
 
-	...
+	... (total of "quantity" recommendations)
 ]
 ```
 
@@ -101,11 +101,13 @@ Returns a list of "quantity" recommendations ordered by score.
 ```
 
 ### Group Relevance Scores
-URL: http://localhost:5000/relevance_scores
+#### URL:
+http://localhost:5000/relevance_scores
 
-JSON: Exactly the same as for single user recommendations
+#### JSON: 
+Exactly the same as /recommendations, but "is_cached" must be false
 
-Return JSON:
+#### Return JSON:
 
 ```
 [
@@ -118,35 +120,6 @@ Return JSON:
 ]
 
 ```
-
-### Group Recommendation using Cached Data
-URL: http://localhost:5000/group_recommendations_using_cache
-
-JSON:
-
-```
-{
-	"group": string
-	"quantity": int (optional, defaults to 100)
-	"users": [
-		list of either
-			single user recommendation query
-			OR
-			single user recommendation query with following replacements:
-				"is_cached": True
-				"ratings" = [
-					{
-						"imdb": string
-						"score": string
-					}
-
-				]
-	]
-}
-```
-
-Return JSON: Exactly the same as for single user recommendations
-
 
 ## Data Description
 
