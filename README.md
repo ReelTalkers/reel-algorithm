@@ -113,7 +113,7 @@ Exactly the same as /recommendations, but "is_cached" must be false
 [
 	{
 		"imdb": string
-		"score": string (corresponds to float between 0 and 1)
+		"score": float (in range(0, 1))
 	},
 
 	... (total of "quantity" movie scores)
