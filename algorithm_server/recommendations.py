@@ -5,18 +5,33 @@ from itertools import islice
 
 def group_recommendation_vector(ratings_matrix, user_ratings_list, agg_method, **kwargs):
     """
-    Computes a 1x|M| movie recommendation vector for a group of users
-    For each movie, uses the minumum score from all users as the group score
+    Computes a 1x|M| movie recommendation vector for a group of users using a specified aggregation function.
+    Does not consider any cached movie recommendations.
 
     ratings_matrix is a |U|x|M| matrix composed of prior user ratings
     user_ratings_list is a list of dictionaries, one dictionary for each user that is part of the group
         Each dictionary maps (movielens_id) -> (user rating) for that particular user
 
+    agg_method is an recommendations aggregation function
+        should be either least_misery_aggregation or disagreement_variance_aggregation
     """
-    return agg_method(single_user_recommendation_vector(ratings_matrix, u) for u in user_ratings_list)
+    return agg_method([single_user_recommendation_vector(ratings_matrix, u) for u in user_ratings_list], **kwargs)
 
 
 def group_recommendation_vector_from_cache(ratings_matrix, user_ratings_list, cached_recommendations, agg_method, **kwargs):
+    """
+    Computes a 1x|M| movie recommendation vector for a group of users using a specified aggregation function.
+    Considers any cached movie recommendations.
+
+    ratings_matrix is a |U|x|M| matrix composed of prior user ratings
+    user_ratings_list is a list of dictionaries, one dictionary for each user that is part of the group
+        Each dictionary maps (movielens_id) -> (user rating) for that particular user
+
+    cached_recommendations is a list of cached movie recommendation vectors.
+
+    agg_method is an recommendations aggregation function
+        should be either least_misery_aggregation or disagreement_variance_aggregation
+    """
 
     rec_vectors = [single_user_recommendation_vector(ratings_matrix, u) for u in user_ratings_list]
     rec_vectors.extend(cached_recommendations)
