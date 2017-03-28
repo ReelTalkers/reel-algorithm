@@ -61,13 +61,16 @@ http://localhost:5000/recommendations
 
 ```
 {
-	"group": string
 	"quantity": int (optional, defaults to 100)
 	"users": [
-		"is_cached": boolean (optional, defaults to False)
-						False -> ratings = list of ratings
-						True -> ratings = movie relevance scores
-		"ratings": either list of ratings or list of movie relevance scores
+		{
+			"is_cached": boolean (optional, defaults to False)
+							False -> ratings = list of ratings
+							True -> ratings = movie relevance scores
+			"ratings": either list of ratings or list of movie relevance scores
+		},
+		...
+	]
 }
 ```
 

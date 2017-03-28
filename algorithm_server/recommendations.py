@@ -117,7 +117,7 @@ def calculate_item_relevance_scores(ratings_matrix, user_similarity_profile):
     return user_similarity_profile.dot(ratings_matrix.matrix) / sum(user_similarity_profile.data)
 
 
-def get_ranked_movielens_ids(ratings_matrix, item_scores, original_ratings):
+def get_ranked_movielens_ids(ratings_matrix, item_scores, original_ratings, top_k):
     """
     Returns an ordered dictionary containing the top-k higest scoring items in item_scores,
     with the indices in item_scores converted to movie lens ids using the ratings matrix
@@ -125,7 +125,7 @@ def get_ranked_movielens_ids(ratings_matrix, item_scores, original_ratings):
 
     movielens_items = ((ratings_matrix.get_movielens_id(i), item_scores[0, i]) for i in item_scores.indices)
     movielens_items = filter(lambda x: x[0] not in original_ratings, movielens_items)
-    movielens_items = sorted(movielens_items, key=lambda x: x[1], reverse=True)
+    movielens_items = sorted(movielens_items, key=lambda x: x[1], reverse=True)[:top_k]
 
     indexed_items = OrderedDict()
     for movie, score in movielens_items:
@@ -162,7 +162,6 @@ def get_ranked_movielens_ids_from_file(ratings_file, datadir):
 
 
 def get_group_movielens_ids_from_file(ratings_files, datadir, method=group_recommendation_vector_least_misery):
-
     """
     Gets an OrderedDict mapping (movielens_id) -> (score) with monotonically decreasing scores
 
