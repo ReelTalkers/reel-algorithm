@@ -18,7 +18,7 @@ def group_recommendation_vector(ratings_matrix, user_ratings_list, agg_method, *
     return agg_method([single_user_recommendation_vector(ratings_matrix, u) for u in user_ratings_list], **kwargs)
 
 
-def group_recommendation_vector_from_cache(ratings_matrix, user_ratings_list, cached_recommendations, agg_method, **kwargs):
+def group_recommendation_vector_from_cache(ratings_matrix, user_ratings_list, cached_vectors, agg_method, **kwargs):
     """
     Computes a 1x|M| movie recommendation vector for a group of users using a specified aggregation function.
     Considers any cached movie recommendations.
@@ -27,14 +27,14 @@ def group_recommendation_vector_from_cache(ratings_matrix, user_ratings_list, ca
     user_ratings_list is a list of dictionaries, one dictionary for each user that is part of the group
         Each dictionary maps (movielens_id) -> (user rating) for that particular user
 
-    cached_recommendations is a list of cached movie recommendation vectors.
+    cached_vectors is a list of cached movie recommendation vectors.
 
     agg_method is an recommendations aggregation function
         should be either least_misery_aggregation or disagreement_variance_aggregation
     """
 
     rec_vectors = [single_user_recommendation_vector(ratings_matrix, u) for u in user_ratings_list]
-    rec_vectors.extend(cached_recommendations)
+    rec_vectors.extend(cached_vectors)
 
     return agg_method(rec_vectors, **kwargs)
 
@@ -127,7 +127,7 @@ def calculate_item_relevance_scores(ratings_matrix, user_similarity_profile):
     return user_similarity_profile.dot(ratings_matrix.matrix) / sum(user_similarity_profile.data)
 
 
-def get_ranked_movielens_ids(ratings_matrix, item_scores, original_ratings, top_k):
+def get_movie_scores(ratings_matrix, item_scores, original_ratings, top_k):
     """
     Returns an ordered dictionary containing the top-k higest scoring items in item_scores,
     with the indices in item_scores converted to movie lens ids using the ratings matrix
@@ -142,13 +142,3 @@ def get_ranked_movielens_ids(ratings_matrix, item_scores, original_ratings, top_
         indexed_items[movie] = score
 
     return indexed_items
-
-
-def get_top_k_movielens_ids(ranked_movielens_ids, top_k):
-    """
-    ranked_movielens_ids is an OrderedDict mapping (movielens_id) -> (score) with monotonically decreasing scores
-    Typically obtained through the get_ranked_movielens_ids() function
-
-    Returns a list of the top-k movielens ids from this collection
-    """
-    return list(islice(ranked_movielens_ids, top_k))

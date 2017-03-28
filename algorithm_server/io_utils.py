@@ -200,3 +200,11 @@ def json_ratings_to_dict(json_ratings, movielens_to_imdb):
             ratings[movielens_to_imdb.inv[imdb_id]] = rating
 
     return ratings
+
+
+def get_user_rating_list(json_ratings, movielens_to_imdb_bidict):
+    return [json_ratings_to_dict(u["ratings"], movielens_to_imdb_bidict) for u in json["users"]]
+
+
+def get_legal_genres_list(datadir):
+    return []
