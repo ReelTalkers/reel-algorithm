@@ -1,10 +1,9 @@
-import algorithm_server.io_utils as io_utils
 import scipy.sparse as sp
 from collections import OrderedDict
 from itertools import islice
 
 
-def group_recommendation_vector_least_misery(ratings_matrix, user_ratings_list):
+def group_recommendation_vector(ratings_matrix, user_ratings_list, agg_method, **kwargs):
     """
     Computes a 1x|M| movie recommendation vector for a group of users
     For each movie, uses the minumum score from all users as the group score
@@ -14,42 +13,15 @@ def group_recommendation_vector_least_misery(ratings_matrix, user_ratings_list):
         Each dictionary maps (movielens_id) -> (user rating) for that particular user
 
     """
+    return agg_method(single_user_recommendation_vector(ratings_matrix, u) for u in user_ratings_list)
 
-    #Look into this article to find a potentially faster way to do this computation via numpy
-    #http://stackoverflow.com/questions/39277638/element-wise-minimum-of-multiple-vectors-in-numpy
+
+def group_recommendation_vector_from_cache(ratings_matrix, user_ratings_list, cached_recommendations, agg_method, **kwargs):
 
     rec_vectors = [single_user_recommendation_vector(ratings_matrix, u) for u in user_ratings_list]
+    rec_vectors.extend(cached_recommendations)
 
-    group_rec_vector = sp.dok_matrix(rec_vectors[0].shape)
-
-    for i in range(group_rec_vector.shape[1]):
-        group_rec_vector[0, i] = min(r[0, i] for r in rec_vectors)
-
-    return group_rec_vector.tocsr()
-
-
-def group_recommendation_vector_disagreement_variance(ratings_matrix, user_ratings_list, mean_weight=.2):
-    """
-    Computes a 1x|M| movie recommendation vector for a group of users
-    For each movie, a group score is calculated using the average score of the movie among the group,
-        as well as the variance of the score among the group
-
-    ratings_matrix is a |U|x|M| matrix composed of prior user ratings
-    user_ratings_list is a list of dictionaries, one dictionary for each user that is part of the group
-        Each dictionary maps (movielens_id) -> (user rating) for that particular user
-
-    """
-    rec_vectors = [single_user_recommendation_vector(ratings_matrix, u) for u in user_ratings_list]
-
-    group_rec_vector = sp.dok_matrix(rec_vectors[0].shape)
-
-    for i in range(group_rec_vector.shape[1]):
-        col = [r[0, i] for r in rec_vectors]
-        mean = sum(col) / len(col)
-        var = sum((i - mean) ** 2 for i in col) / len(col)
-        group_rec_vector[0, i] = mean_weight * mean + (1 - mean_weight) * (1 - var)
-
-    return group_rec_vector.tocsr()
+    return agg_method(rec_vectors, **kwargs)
 
 
 def single_user_recommendation_vector(ratings_matrix, new_user_ratings):
@@ -64,6 +36,29 @@ def single_user_recommendation_vector(ratings_matrix, new_user_ratings):
     user_similarity_profile = calculate_user_similarity_profile(ratings_matrix, new_user_ratings)
 
     return calculate_item_relevance_scores(ratings_matrix, user_similarity_profile)
+
+
+def least_misery_aggregation(rec_vectors, **kwargs):
+    group_rec_vector = sp.dok_matrix(rec_vectors[0].shape)
+
+    for i in range(group_rec_vector.shape[1]):
+        group_rec_vector[0, i] = min(r[0, i] for r in rec_vectors)
+
+    return group_rec_vector.tocsr()
+
+
+def disagreement_variance_aggregation(rec_vectors, **kwargs):
+    mean_weight = kwargs.get("mean_weight", .8)
+
+    group_rec_vector = sp.dok_matrix(rec_vectors[0].shape)
+
+    for i in range(group_rec_vector.shape[1]):
+        col = [r[0, i] for r in rec_vectors]
+        mean = sum(col) / len(col)
+        var = sum((i - mean) ** 2 for i in col) / len(col)
+        group_rec_vector[0, i] = mean_weight * mean + (1 - mean_weight) * (1 - var)
+
+    return group_rec_vector.tocsr()
 
 
 def calculate_user_similarity_profile(ratings_matrix, new_user_ratings):
@@ -142,38 +137,3 @@ def get_top_k_movielens_ids(ranked_movielens_ids, top_k):
     Returns a list of the top-k movielens ids from this collection
     """
     return list(islice(ranked_movielens_ids, top_k))
-
-
-def get_ranked_movielens_ids_from_file(ratings_file, datadir):
-    """
-    Gets an OrderedDict mapping (movielens_id) -> (score) with monotonically decreasing scores
-
-    ratings_file is the filepath of a text file containing (imdb id) -> (rating) pairs
-    datadir is the filepath of a directory containing all movie data
-
-    """
-    ratings_matrix = io_utils.build_user_item_matrix(datadir)
-
-    new_user_ratings = io_utils.get_sample_ratings_dict(datadir, ratings_file)
-
-    relevance_scores = single_user_recommendation_vector(ratings_matrix, new_user_ratings)
-
-    return get_ranked_movielens_ids(ratings_matrix, relevance_scores, new_user_ratings.keys())
-
-
-def get_group_movielens_ids_from_file(ratings_files, datadir, method=group_recommendation_vector_least_misery):
-    """
-    Gets an OrderedDict mapping (movielens_id) -> (score) with monotonically decreasing scores
-
-    ratings_file is the filepath of a text file containing (imdb id) -> (rating) pairs
-    datadir is the filepath of a directory containing all movie data
-
-    """
-
-    ratings_matrix = io_utils.build_user_item_matrix(datadir)
-
-    user_ratings = [io_utils.get_sample_ratings_dict(datadir, r) for r in ratings_files]
-
-    rated_movies = set().union(*[u.keys() for u in user_ratings])
-
-    return get_ranked_movielens_ids(ratings_matrix, method(ratings_matrix, user_ratings), rated_movies)
