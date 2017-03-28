@@ -22,7 +22,7 @@ The movie recommender algorithm uses the MovieLens dataset as past data to deriv
 * Install the python dependencies
   * `pip install -r requirements.txt`
 * To run the flask server
-  * `python algorithm-server/app.py`
+  * `python run.py`
 * When you are done, close the virtualenv
   * `deactivate`
 
@@ -35,7 +35,7 @@ simply follow the following instructions to run the server in detached mode:
 
 ```
 workon venv
-python algorithm-server/app.py &
+python run.py &
 ```
 
 ### Obtaining Data
@@ -52,30 +52,42 @@ Alternatively, download all the datasets at once by typing `bash data-download.s
 
 Send all queries to localhost port 5000 as POST requests with a corresponding JSON file in the data section.
 
-### Single User Recommendations
-URL: http://localhost:5000/recommendations
 
-JSON:
+### Group Recommendations
+#### URL:
+http://localhost:5000/recommendations
+
+#### JSON:
 
 ```
 {
-	"user": string,
+	"group": string
 	"quantity": int (optional, defaults to 100)
-	"is_cached": boolean (should always be false, mainly for compatability )
-	"ratings": [
-		{
-			"rating": string (must be to star rating between 0.5 and 5.0)
-			"imdb": string (must be valid IMDB identifier)
-
-		},
-
-		...
-
-	]
+	"users": [
+		"is_cached": boolean
+						True -> ratings = list of ratings
+						False -> ratings = movie relevance scores
+		"ratings": either list of ratings or list of movie relevance scores
 }
 ```
 
-Return JSON:
+List of ratings format:
+
+```
+[
+	{
+		"imdb": string (must correspond to imdb ID)
+		"rating": float (must be star rating between .5 and 5.0)
+	}, 
+
+	...
+]
+```
+
+List of movie relevance scores format: see output of /relevance_scores endpoint
+
+
+#### Return JSON:
 
 Returns a list of "quantity" recommendations ordered by score.
 
@@ -88,26 +100,7 @@ Returns a list of "quantity" recommendations ordered by score.
 
 ```
 
-### Group Recommendations
-URL: http://localhost:5000/group_recommendations
-
-JSON:
-
-```
-{
-	"group": string
-	"quantity": int (optional, defaults to 100)
-	"users": list of single user recommendations JSON (without "quantity" field)
-}
-
-```
-
-Return JSON:
-
-Same as for single user recommendations.
-
-
-### Single User Relevance Scores
+### Group Relevance Scores
 URL: http://localhost:5000/relevance_scores
 
 JSON: Exactly the same as for single user recommendations
