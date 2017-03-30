@@ -18,7 +18,7 @@ def group_recommendation_vector(ratings_matrix, user_ratings_list, agg_method, *
     return agg_method([single_user_recommendation_vector(ratings_matrix, u) for u in user_ratings_list], **kwargs)
 
 
-def group_recommendation_vector_from_cache(ratings_matrix, user_ratings_list, cached_vectors, agg_method, **kwargs):
+def group_recommendation_vector_from_cache(ratings_matrix, user_ratings_list, cached_recommendations, agg_method, **kwargs):
     """
     Computes a 1x|M| movie recommendation vector for a group of users using a specified aggregation function.
     Considers any cached movie recommendations.
@@ -34,7 +34,11 @@ def group_recommendation_vector_from_cache(ratings_matrix, user_ratings_list, ca
     """
 
     rec_vectors = [single_user_recommendation_vector(ratings_matrix, u) for u in user_ratings_list]
-    rec_vectors.extend(cached_vectors)
+    for cached_rec in cached_recommendations:
+        vec = sp.dok_matrix(1, ratings_matrix.shape[1])
+        for key, value in cached_rec.items():
+            vec[0, key] = value
+        rec_vectors.extend(vec)
 
     return agg_method(rec_vectors, **kwargs)
 

@@ -3,7 +3,27 @@ from bidict import bidict
 import json
 
 
+def build_user_item_matrix(datadir):
+    matrix = User_Movie_Matrix()
+
+    for userId, movieId, rating in get_ratings_stream(datadir):
+        matrix.add_rating(userId, movieId, float(rating))
+
+    matrix.build_matrix()
+    return matrix
+
+
 class User_Movie_Matrix:
+
+    @classmethod
+    def from_datadir(cls, datadir):
+        matrix = cls()
+
+        for userId, movieId, rating in get_ratings_stream(datadir):
+            matrix.add_rating(userId, movieId, float(rating))
+
+        matrix.build_matrix()
+        return matrix
 
     def __init__(self):
         #Map the user and movie ids from the MovieLens dataset to indices in the User-Movie matrix
@@ -147,16 +167,6 @@ def get_sample_ratings_dict(links_datadir, filepath, id_source='imdb'):
             ratings_dict[links.inv[id]] = rating
 
     return ratings_dict
-
-
-def build_user_item_matrix(datadir):
-    matrix = User_Movie_Matrix()
-
-    for userId, movieId, rating in get_ratings_stream(datadir):
-        matrix.add_rating(userId, movieId, float(rating))
-
-    matrix.build_matrix()
-    return matrix
 
 
 def get_json_format_ratings_list(ratings_file):

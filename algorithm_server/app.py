@@ -15,8 +15,6 @@ def recommendations():
 
     user_ratings, cached_recommendations = io_utils.parse_mixed_user_ratings_cached_data(users["json"], movielens_to_imdb_bidict)
 
-    cached_vectors = convert_movie_score_dicts_to_vectors(cached_recommendations)
-
     rec_vector = group_recommendation_vector_from_cache(ratings_matrix, user_ratings, cached_vectors, agg_method)
 
     movie_scores = recommendations.get_movie_scores(ratings_matrix, rec_vector, rated_movies, quantity)
@@ -66,7 +64,7 @@ def set_globals(datadir):
     global movielens_to_genre_bidict
     global agg_methods
 
-    ratings_matrix = io_utils.build_user_item_matrix(datadir)
+    ratings_matrix = io_utils.User_Movie_Matrix.from_datadir(datadir)
     movielens_to_imdb_bidict = io_utils.get_movie_links_dict(datadir, 'imdb')
     movielens_to_genre_bidict = io_utils.get_genre_mapping(datadir)
 
