@@ -13,9 +13,14 @@ def recommendations():
 
     quantity, agg_method, genre = parse_quantity(json), parse_method(json), parse_genre(json)
 
-    user_ratings, cached_recommendations = io_utils.parse_mixed_user_ratings_cached_data(users["json"], movielens_to_imdb_bidict)
+    user_ratings, cached_recs = io_utils.parse_mixed_user_ratings_cached_data(users["json"], movielens_to_imdb_bidict)
 
-    rec_vector = group_recommendation_vector_from_cache(ratings_matrix, user_ratings, cached_vectors, agg_method)
+    rated_movies = rated_movies_set(user_ratings)
+
+    rvc = recommendations.Recommendations_Vector_Collection.from_user_ratings(ratings_matrix, user_ratings)
+    rvc += recommendations.Recommendations_Vector_Collection.from_cached_scores(cls, ratings_matrix, cached_recs)
+
+    rec_vector = recommendations.group_recommendation_vector_from_cache(rvc, agg_method)
 
     movie_scores = recommendations.get_movie_scores(ratings_matrix, rec_vector, rated_movies, quantity)
 
@@ -32,7 +37,9 @@ def relevance_scores():
 
     rated_movies = rated_movies_set(user_ratings)
 
-    rec_vector = group_recommendation_vector(ratings_matrix, user_ratings, agg_method)
+    rvc = recommendations.Recommendations_Vector_Collection.from_user_ratings(ratings_matrix, user_ratings)
+
+    rec_vector = group_recommendation_vector(rvc, agg_method)
 
     movie_scores = recommendations.get_movie_scores(ratings_matrix, rec_vector, rated_movies, quantity)
 
