@@ -203,8 +203,8 @@ def json_ratings_to_dict(json_ratings, movielens_to_imdb):
 
 
 def get_user_rating_list(json_ratings, movielens_to_imdb_bidict):
-    return [json_ratings_to_dict(u["ratings"], movielens_to_imdb_bidict) for u in json["users"]]
+    return [json_ratings_to_dict(u["ratings"], movielens_to_imdb_bidict) for u in json_ratings]
 
 
-def get_legal_genres_list(datadir):
-    return []
+def get_genre_mapping(datadir):
+    return {}

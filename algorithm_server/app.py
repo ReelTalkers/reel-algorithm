@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-import algorithm_server.recommendations as recommendations
+from algorithm_server.recommendations import *
 import algorithm_server.io_utils as io_utils
 from collections import *
 
@@ -17,12 +17,12 @@ def recommendations():
 
     rated_movies = rated_movies_set(user_ratings)
 
-    rvc = recommendations.Recommendations_Vector_Collection.from_user_ratings(ratings_matrix, user_ratings)
-    rvc += recommendations.Recommendations_Vector_Collection.from_cached_scores(cls, ratings_matrix, cached_recs)
+    rvc = Recommendations_Vector_Collection.from_user_ratings(ratings_matrix, user_ratings)
+    rvc += Recommendations_Vector_Collection.from_cached_scores(cls, ratings_matrix, cached_recs)
 
-    rec_vector = recommendations.group_recommendation_vector_from_cache(rvc, agg_method)
+    rec_vector = group_recommendation_vector_from_cache(rvc, agg_method)
 
-    movie_scores = recommendations.get_movie_scores(ratings_matrix, rec_vector, rated_movies, quantity)
+    movie_scores = get_movie_scores(ratings_matrix, rec_vector, rated_movies, quantity)
 
     return (jsonify(["tt" + movielens_to_imdb_bidict[key] for key in movie_scores.keys()]))
 
@@ -37,11 +37,11 @@ def relevance_scores():
 
     rated_movies = rated_movies_set(user_ratings)
 
-    rvc = recommendations.Recommendations_Vector_Collection.from_user_ratings(ratings_matrix, user_ratings)
+    rvc = Recommendations_Vector_Collection.from_user_ratings(ratings_matrix, user_ratings)
 
     rec_vector = group_recommendation_vector(rvc, agg_method)
 
-    movie_scores = recommendations.get_movie_scores(ratings_matrix, rec_vector, rated_movies, quantity)
+    movie_scores = get_movie_scores(ratings_matrix, rec_vector, rated_movies, quantity)
 
     return jsonify({"tt" + movielens_to_imdb_bidict[key]: value for key, value in movie_scores.items()})
 
@@ -51,7 +51,7 @@ def parse_quantity(json):
 
 
 def parse_method(json):
-    return recommendation_methods.get(json.get("method", ""), recommendations.least_misery_aggregation)
+    return agg_methods.get(json.get("method", ""), least_misery_aggregation)
 
 
 def parse_genre(json):
@@ -76,8 +76,8 @@ def set_globals(datadir):
     movielens_to_genre_bidict = io_utils.get_genre_mapping(datadir)
 
     agg_methods = {}
-    agg_methods["least_misery"] = recommendations.least_misery_aggregation
-    agg_methods["disagreement_variance"] = recommendations.disagreement_variance_aggregation
+    agg_methods["least_misery"] = least_misery_aggregation
+    agg_methods["disagreement_variance"] = disagreement_variance_aggregation
 
 
 def start_server(datadir):

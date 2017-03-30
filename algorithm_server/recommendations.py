@@ -1,81 +1,5 @@
 import scipy.sparse as sp
 from collections import OrderedDict
-from itertools import islice
-
-
-class Recommendations_Vector_Collection:
-
-    @classmethod
-    def from_user_ratings(cls, ratings_matrix, user_ratings_list, rec_method=single_user_recommendation_vector):
-        rvc = Recommendations_Vector_Collection()
-        for user_ratings in user_ratings_list:
-            rvc.rec_vectors.append(rec_method(ratings_matrix, user_ratings))
-        return rvc
-
-    @classmethod
-    def from_cached_scores(cls, ratings_matrix, cached_scores_list):
-        rvc = Recommendations_Vector_Collection()
-        for cached_rec in cached_scores_list:
-            vec = sp.dok_matrix(1, ratings_matrix.shape[1])
-            for key, value in cached_rec.items():
-                vec[0, key] = value
-            rvc.rec_vectors.append(vec.tocsr())
-        return rvc
-
-    def __init__(self):
-        self.rec_vectors = []
-
-    def get_vector_shape(self):
-        return self.rec_vectors[0].shape
-
-    def min_at_index(self, i):
-        return min(r[0, i] for r in self.rec_vectors)
-
-    def mean_and_var_at_index(self, i):
-        col = [r[0, i] for r in self.rec_vectors]
-        mean = sum(col) / len(col)
-        var = sum((i - mean) ** 2 for i in col) / len(col)
-        return mean, var
-
-    def __add__(self, x):
-        self.rec_vectors.extend(x.rec_vectors)
-        return self
-
-
-def group_recommendation_vector(rec_vectors, agg_method, **kwargs):
-    """
-    Computes a 1x|M| movie recommendation vector for a group of users using a specified aggregation function.
-    Does not consider any cached movie recommendations.
-
-    ratings_matrix is a |U|x|M| matrix composed of prior user ratings
-    user_ratings_list is a list of dictionaries, one dictionary for each user that is part of the group
-        Each dictionary maps (movielens_id) -> (user rating) for that particular user
-
-    agg_method is an recommendations aggregation function
-        should be either least_misery_aggregation or disagreement_variance_aggregation
-    """
-    return agg_method(rec_vectors, **kwargs)
-
-
-def least_misery_aggregation(rvc, **kwargs):
-    group_rec_vector = sp.dok_matrix(rvc.get_vector_shape())
-
-    for i in range(group_rec_vector.shape[1]):
-        group_rec_vector[0, i] = rvc.min_at_index(i)
-
-    return group_rec_vector.tocsr()
-
-
-def disagreement_variance_aggregation(rvc, **kwargs):
-    mean_weight = kwargs.get("mean_weight", .8)
-
-    group_rec_vector = sp.dok_matrix(rvc.get_vector_shape())
-
-    for i in range(group_rec_vector.shape[1]):
-        mean, var = rvc.mean_and_var_at_index(i)
-        group_rec_vector[0, i] = mean_weight * mean + (1 - mean_weight) * (1 - var)
-
-    return group_rec_vector.tocsr()
 
 
 def single_user_recommendation_vector(ratings_matrix, new_user_ratings):
@@ -158,3 +82,78 @@ def get_movie_scores(ratings_matrix, item_scores, original_ratings, top_k):
         indexed_items[movie] = score
 
     return indexed_items
+
+
+class Recommendations_Vector_Collection:
+
+    @classmethod
+    def from_user_ratings(cls, ratings_matrix, user_ratings_list, rec_method=single_user_recommendation_vector):
+        rvc = Recommendations_Vector_Collection()
+        for user_ratings in user_ratings_list:
+            rvc.rec_vectors.append(rec_method(ratings_matrix, user_ratings))
+        return rvc
+
+    @classmethod
+    def from_cached_scores(cls, ratings_matrix, cached_scores_list):
+        rvc = Recommendations_Vector_Collection()
+        for cached_rec in cached_scores_list:
+            vec = sp.dok_matrix(1, ratings_matrix.shape[1])
+            for key, value in cached_rec.items():
+                vec[0, key] = value
+            rvc.rec_vectors.append(vec.tocsr())
+        return rvc
+
+    def __init__(self):
+        self.rec_vectors = []
+
+    def get_vector_shape(self):
+        return self.rec_vectors[0].shape
+
+    def min_at_index(self, i):
+        return min(r[0, i] for r in self.rec_vectors)
+
+    def mean_and_var_at_index(self, i):
+        col = [r[0, i] for r in self.rec_vectors]
+        mean = sum(col) / len(col)
+        var = sum((i - mean) ** 2 for i in col) / len(col)
+        return mean, var
+
+    def __add__(self, x):
+        self.rec_vectors.extend(x.rec_vectors)
+        return self
+
+
+def group_recommendation_vector(rec_vectors, agg_method, **kwargs):
+    """
+    Computes a 1x|M| movie recommendation vector for a group of users using a specified aggregation function.
+    Does not consider any cached movie recommendations.
+
+    ratings_matrix is a |U|x|M| matrix composed of prior user ratings
+    user_ratings_list is a list of dictionaries, one dictionary for each user that is part of the group
+        Each dictionary maps (movielens_id) -> (user rating) for that particular user
+
+    agg_method is an recommendations aggregation function
+        should be either least_misery_aggregation or disagreement_variance_aggregation
+    """
+    return agg_method(rec_vectors, **kwargs)
+
+
+def least_misery_aggregation(rvc, **kwargs):
+    group_rec_vector = sp.dok_matrix(rvc.get_vector_shape())
+
+    for i in range(group_rec_vector.shape[1]):
+        group_rec_vector[0, i] = rvc.min_at_index(i)
+
+    return group_rec_vector.tocsr()
+
+
+def disagreement_variance_aggregation(rvc, **kwargs):
+    mean_weight = kwargs.get("mean_weight", .8)
+
+    group_rec_vector = sp.dok_matrix(rvc.get_vector_shape())
+
+    for i in range(group_rec_vector.shape[1]):
+        mean, var = rvc.mean_and_var_at_index(i)
+        group_rec_vector[0, i] = mean_weight * mean + (1 - mean_weight) * (1 - var)
+
+    return group_rec_vector.tocsr()
