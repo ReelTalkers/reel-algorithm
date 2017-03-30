@@ -61,33 +61,40 @@ http://localhost:5000/recommendations
 
 ```
 {
-	"quantity": int (optional, defaults to 100)
+	"quantity": 10,
+	"genre": "Comedy",
 	"users": [
 		{
-			"is_cached": boolean (optional, defaults to False)
-							False -> ratings = list of ratings
-							True -> ratings = movie relevance scores
-			"ratings": either list of ratings or list of movie relevance scores
+			"user": "data/sample_users/andrew.txt",
+			"is_cached": false,
+			"ratings": [
+				{
+					"rating": "5.0",
+					"imdb": "tt0106611"
+				},
+				{
+					"rating": "3.0",
+					"imdb": "tt0268380"
+				}
+			]
 		},
-		...
+		{
+			"user": "data/sample_users/galen.txt",
+			"is_cached": true,
+			"ratings": [
+				{
+					"imdb": "tt0133093",
+					"score": 0.8725195129822181
+				},
+				{
+					"imdb": "tt0076759",
+					"score": 0.8052612579104834
+				}
+			]
+		}
 	]
 }
 ```
-
-List of ratings format:
-
-```
-[
-	{
-		"imdb": string (must correspond to imdb ID)
-		"rating": float (must be star rating between .5 and 5.0)
-	}, 
-
-	... (total of "quantity" recommendations)
-]
-```
-
-List of movie relevance scores format: see output of /relevance_scores endpoint
 
 
 #### Return JSON:
@@ -96,9 +103,8 @@ Returns a list of "quantity" recommendations ordered by score.
 
 ```
 [
-	"imdb": string
-	"imdb": string
-	...
+	"imdb": "tt0133093",
+	"imdb": "tt0076759"
 ]
 
 ```
@@ -108,18 +114,20 @@ Returns a list of "quantity" recommendations ordered by score.
 http://localhost:5000/relevance_scores
 
 #### JSON: 
-Exactly the same as /recommendations, but "is_cached" must be false
+Exactly the same as /recommendations, but "is_cached" must always be false
 
 #### Return JSON:
 
 ```
 [
 	{
-		"imdb": string
-		"score": float (in range(0, 1))
+		"imdb": "tt0133093",
+		"score": 0.8725195129822181
 	},
-
-	... (total of "quantity" movie scores)
+	{
+		"imdb": "tt0076759",
+		"score": 0.8052612579104834
+	}
 ]
 
 ```
