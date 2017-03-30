@@ -63,6 +63,7 @@ http://localhost:5000/recommendations
 {
 	"quantity": 10,
 	"genre": "Comedy",
+	"method": "least_misery",
 	"users": [
 		{
 			"user": "data/sample_users/andrew.txt",
