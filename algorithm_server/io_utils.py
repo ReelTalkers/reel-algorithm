@@ -1,6 +1,5 @@
 from scipy.sparse import *
 from bidict import bidict
-import json
 
 
 class User_Movie_Matrix:
@@ -106,96 +105,23 @@ def get_links_stream(datadir):
             yield tuple(str(line).strip().split(","))
 
 
-def get_movie_links_dict(datadir, alt_id):
+def get_movie_links_dict(datadir):
     """
-    Returns a bidict that maps (movielens id) -> (alternate movie id (either 'imdb' or 'tmdb'))
+    Returns a bidict that maps (movielens id) -> (imdb id)
     """
     links = bidict()
 
-    identifiers = {'imdb': 1, 'tmdb': 2}
-
-    if(alt_id not in identifiers):
-        return links
-
-    field = identifiers[alt_id]
-
     for line in get_links_stream(datadir):
-        links[line[0]] = line[field]
+        links[line[0]] = "tt" + line[1]
 
     return links
 
 
-def get_movie_id_title_dict(datadir):
-    return {id: title for id, title, genre in get_movie_description_stream(datadir)}
-
-
-def get_first_user_rating_dict(datadir):
-    ratings = {}
-
-    ratings_stream = get_ratings_stream(datadir)
-    while(True):
-        user, movie, rating = next(ratings_stream)
-        if(not user == "1"):
-            break
-        ratings[movie] = float(rating)
-    return ratings
-
-
-def get_sample_ratings_dict(links_datadir, filepath, id_source='imdb'):
-    """
-    Returns a ratings dict that maps (movielens id) -> (rating) for ratings in a given filepath
-    """
-    ratings_dict = {}
-
-    links = get_movie_links_dict(links_datadir, id_source)
-    for line in open(filepath, 'r'):
-        id, rating = tuple(line.split(" "))
-        id = id[2:]
-        rating = float(rating)
-
-        if id in links.inv:
-            ratings_dict[links.inv[id]] = rating
-
-    return ratings_dict
-
-
-def get_json_format_ratings_list(ratings_file):
-    ratings = []
-    for line in open(ratings_file, 'r'):
-        rating_obj = {}
-        rating_obj["imdb"], rating_obj["rating"] = line.strip().split(" ")
-        ratings.append(rating_obj)
-    return ratings
-
-
-def get_json_query(ratings_file):
-    query = {}
-    query["ratings"] = get_json_format_ratings_list(ratings_file)
-    return json.dumps(query)
-
-
-def read_json_from_file(filename):
-    f = open(filename, "r")
-    data = dict(json.loads(f.read()))
-    f.close()
-    return data
-
-
-def get_group_json_query(ratings_files):
-    query = {}
-    query["users"] = []
-    for i, file in enumerate(ratings_files):
-        user_obj = {}
-        user_obj["user"], user_obj["ratings"] = file, get_json_format_ratings_list(file)
-        query["users"].append(user_obj)
-    return json.dumps(query)
-
-
-def json_ratings_to_dict(json_ratings, movielens_to_imdb):
+def json_ratings_to_dict(json_ratings, movielens_to_imdb, field_name="rating"):
     ratings = {}
     for item in json_ratings:
-        imdb_id = item["imdb"][2:]
-        rating = float(item["rating"])
+        imdb_id = item["imdb"]
+        rating = float(item[field_name])
         if(imdb_id in movielens_to_imdb.inv):
             ratings[movielens_to_imdb.inv[imdb_id]] = rating
 
@@ -203,14 +129,21 @@ def json_ratings_to_dict(json_ratings, movielens_to_imdb):
 
 
 def get_user_rating_list(json_ratings, movielens_to_imdb_bidict):
-    return [json_ratings_to_dict(u["ratings"], movielens_to_imdb_bidict) for u in json_ratings]
+    return [json_ratings_to_dict(u["ratings"], movielens_to_imdb_bidict) for u in json_ratings["users"]]
 
 
 def get_genre_mapping(datadir):
     return {}
 
 
-def parse_mixed_user_ratings_cached_data(json_ratings):
+def parse_mixed_user_ratings_cached_data(json_ratings, movielens_to_imdb_bidict):
+    user_ratings = []
+    cached_data = []
 
-    
-    return None
+    for user in json_ratings["users"]:
+        if("is_cached" not in user or not user["is_cached"]):
+            user_ratings.append(json_ratings_to_dict(user["ratings"], movielens_to_imdb_bidict))
+        else:
+            cached_data.append(json_ratings_to_dict(user["ratings"], movielens_to_imdb_bidict, field_name="score"))
+
+    return user_ratings, cached_data

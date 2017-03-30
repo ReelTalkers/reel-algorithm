@@ -62,62 +62,6 @@ def calculate_item_relevance_scores(ratings_matrix, user_similarity_profile):
     return user_similarity_profile.dot(ratings_matrix.matrix) / sum(user_similarity_profile.data)
 
 
-def get_movie_scores(ratings_matrix, item_scores, original_ratings, top_k):
-    """
-    Returns an ordered dictionary containing the top-k higest scoring items in item_scores,
-    with the indices in item_scores converted to movie lens ids using the ratings matrix
-    """
-
-    movielens_items = ((ratings_matrix.get_movielens_id(i), item_scores[0, i]) for i in item_scores.indices)
-    movielens_items = filter(lambda x: x[0] not in original_ratings, movielens_items)
-    movielens_items = sorted(movielens_items, key=lambda x: x[1], reverse=True)[:top_k]
-
-    indexed_items = OrderedDict()
-    for movie, score in movielens_items:
-        indexed_items[movie] = score
-
-    return indexed_items
-
-
-class Recommendations_Vector_Collection:
-
-    @classmethod
-    def from_user_ratings(cls, ratings_matrix, user_ratings_list, rec_method=single_user_recommendation_vector):
-        rvc = Recommendations_Vector_Collection()
-        for user_ratings in user_ratings_list:
-            rvc.rec_vectors.append(rec_method(ratings_matrix, ratings_matrix.get_ratings_vector(user_ratings)))
-        return rvc
-
-    @classmethod
-    def from_cached_scores(cls, ratings_matrix, cached_scores_list):
-        rvc = Recommendations_Vector_Collection()
-        for cached_rec in cached_scores_list:
-            vec = sp.dok_matrix(1, ratings_matrix.shape[1])
-            for key, value in cached_rec.items():
-                vec[0, key] = value
-            rvc.rec_vectors.append(vec.tocsr())
-        return rvc
-
-    def __init__(self):
-        self.rec_vectors = []
-
-    def get_vector_shape(self):
-        return self.rec_vectors[0].shape
-
-    def min_at_index(self, i):
-        return min(r[0, i] for r in self.rec_vectors)
-
-    def mean_and_var_at_index(self, i):
-        col = [r[0, i] for r in self.rec_vectors]
-        mean = sum(col) / len(col)
-        var = sum((i - mean) ** 2 for i in col) / len(col)
-        return mean, var
-
-    def __add__(self, x):
-        self.rec_vectors.extend(x.rec_vectors)
-        return self
-
-
 def group_recommendation_vector(rec_vectors, agg_method, **kwargs):
     """
     Computes a 1x|M| movie recommendation vector for a group of users using a specified aggregation function,
@@ -151,3 +95,83 @@ def disagreement_variance_aggregation(rvc, **kwargs):
         group_rec_vector[0, i] = mean_weight * mean + (1 - mean_weight) * (1 - var)
 
     return group_rec_vector.tocsr()
+
+
+class Recommendations_Vector_Collection:
+
+    @classmethod
+    def from_user_ratings(cls, ratings_matrix, user_ratings_list, rec_method=single_user_recommendation_vector):
+        rvc = Recommendations_Vector_Collection()
+        for user_ratings in user_ratings_list:
+            rvc.rec_vectors.append(rec_method(ratings_matrix, ratings_matrix.get_ratings_vector(user_ratings)))
+        return rvc
+
+    @classmethod
+    def from_cached_scores(cls, ratings_matrix, cached_scores_list):
+        rvc = Recommendations_Vector_Collection()
+        for cached_rec in cached_scores_list:
+            rvc.rec_vectors.append(ratings_matrix.get_ratings_vector(cached_rec))
+        return rvc
+
+    def __init__(self):
+        self.rec_vectors = []
+
+    def get_vector_shape(self):
+        return self.rec_vectors[0].shape
+
+    def min_at_index(self, i):
+        return min(r[0, i] for r in self.rec_vectors)
+
+    def mean_and_var_at_index(self, i):
+        col = [r[0, i] for r in self.rec_vectors]
+        mean = sum(col) / len(col)
+        var = sum((i - mean) ** 2 for i in col) / len(col)
+        return mean, var
+
+    def __add__(self, x):
+        self.rec_vectors.extend(x.rec_vectors)
+        return self
+
+
+class Movie_Scores:
+
+    @classmethod
+    def from_score_vector(cls, ratings_matrix, score_vec, original_ratings, top_k):
+        ms = Movie_Scores()
+
+        items = ((ratings_matrix.get_movielens_id(i), score_vec[0, i]) for i in score_vec.indices)
+        movielens_items = filter(lambda x: x[0] not in original_ratings, items)
+        movielens_items = sorted(movielens_items, key=lambda x: x[1], reverse=True)[:top_k]
+
+        for movie, score in movielens_items:
+            ms.add_movie(movie, score)
+
+        return ms
+
+    def __init__(self):
+        self.items = OrderedDict()
+        self.id_type = "movielens"
+
+    def add_movie(self, movie, score):
+        self.items[movie] = score
+
+    def convert_indices_to_imdb(self, movie_id_mapper):
+        self.id_type = "imdb"
+        items = OrderedDict()
+        for key, value in self.items.items():
+            items[movie_id_mapper[key]] = value
+        self.items = items
+
+    def output_as_keys_list(self):
+        return list(self.items.keys())
+
+    def output_as_scores_list(self):
+        output = []
+        for key, value in self.items.items():
+            d = {}
+            d[self.id_type] = key
+            d["score"] = value
+            output.append(d)
+        return output
+
+
