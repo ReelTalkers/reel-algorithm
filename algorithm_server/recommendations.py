@@ -7,8 +7,7 @@ def single_user_recommendation_vector(ratings_matrix, ratings_vector):
     Computes a 1x|M| movie recommendation vector for a given user.
 
     ratings_matrix is a |U|x|M| matrix composed of prior user ratings
-    new_user_ratings is a dictionary mapping (movielens id) -> (user rating)
-        for the user we are generating recommendations for
+    rating_vector is a 1x|M| sparse vector of userr ratings
     """
 
     user_similarity_profile = calculate_user_similarity_profile(ratings_matrix, ratings_vector)
@@ -20,7 +19,7 @@ def calculate_user_similarity_profile(ratings_matrix, ratings_vector):
     """
     ratings_matrix is a |U|x|M| matrix composed of prior user ratings
 
-    new_user_ratings is a dictionary that maps (movielens id) -> (user rating)
+    rating_vector is a 1x|M| sparse vector of userr ratings
 
     We want to return a 1x|U| dense user similiarity vector
 
@@ -121,12 +120,11 @@ class Recommendations_Vector_Collection:
 
 def group_recommendation_vector(rec_vectors, agg_method, **kwargs):
     """
-    Computes a 1x|M| movie recommendation vector for a group of users using a specified aggregation function.
-    Does not consider any cached movie recommendations.
+    Computes a 1x|M| movie recommendation vector for a group of users using a specified aggregation function,
+    given the users individual recommendation vectors.
 
+    rec_vectors is a Recommendations_Vector_Collection
     ratings_matrix is a |U|x|M| matrix composed of prior user ratings
-    user_ratings_list is a list of dictionaries, one dictionary for each user that is part of the group
-        Each dictionary maps (movielens_id) -> (user rating) for that particular user
 
     agg_method is an recommendations aggregation function
         should be either least_misery_aggregation or disagreement_variance_aggregation
