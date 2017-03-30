@@ -3,16 +3,6 @@ from bidict import bidict
 import json
 
 
-def build_user_item_matrix(datadir):
-    matrix = User_Movie_Matrix()
-
-    for userId, movieId, rating in get_ratings_stream(datadir):
-        matrix.add_rating(userId, movieId, float(rating))
-
-    matrix.build_matrix()
-    return matrix
-
-
 class User_Movie_Matrix:
 
     @classmethod
@@ -76,6 +66,36 @@ class User_Movie_Matrix:
             del(self.temp_storage_dict[key])
         del(self.temp_storage_dict)
         self.matrix = self.matrix.tocsr()
+
+
+class Recommendations_Vector_Collection:
+
+    @classmethod
+    def from_user_ratings(cls, rec_method, ratings_matrix, user_ratings_list):
+        rvc = Recommendations_Vector_Collection()
+        for user_ratings in user_ratings_list:
+            rvc.rec_vectors.append(rec_method(ratings_matrix, user_ratings))
+        return rvc
+
+    @classmethod
+    def from_cached_scores(cls, ratings_matrix, cached_scores_list):
+        rvc = Recommendations_Vector_Collection()
+        for cached_rec in cached_recommendations:
+            vec = dok_matrix(1, ratings_matrix.shape[1])
+            for key, value in cached_rec.items():
+                vec[0, key] = value
+            rvc.rec_vectors.append(vec.tocsr())
+        return rvc
+
+    def __init__(self):
+        self.rec_vectors = []
+
+    def __add__(self, x):
+        self.rec_vectors.extend(x.rec_vectors)
+        return self
+
+
+
 
 
 def ratings_file(datadir):
