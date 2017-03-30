@@ -208,3 +208,9 @@ def get_user_rating_list(json_ratings, movielens_to_imdb_bidict):
 
 def get_genre_mapping(datadir):
     return {}
+
+
+def parse_mixed_user_ratings_cached_data(json_ratings):
+
+    
+    return None

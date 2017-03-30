@@ -2,7 +2,7 @@ import scipy.sparse as sp
 from collections import OrderedDict
 
 
-def single_user_recommendation_vector(ratings_matrix, new_user_ratings):
+def single_user_recommendation_vector(ratings_matrix, ratings_vector):
     """
     Computes a 1x|M| movie recommendation vector for a given user.
 
@@ -11,12 +11,12 @@ def single_user_recommendation_vector(ratings_matrix, new_user_ratings):
         for the user we are generating recommendations for
     """
 
-    user_similarity_profile = calculate_user_similarity_profile(ratings_matrix, new_user_ratings)
+    user_similarity_profile = calculate_user_similarity_profile(ratings_matrix, ratings_vector)
 
     return calculate_item_relevance_scores(ratings_matrix, user_similarity_profile)
 
 
-def calculate_user_similarity_profile(ratings_matrix, new_user_ratings):
+def calculate_user_similarity_profile(ratings_matrix, ratings_vector):
     """
     ratings_matrix is a |U|x|M| matrix composed of prior user ratings
 
@@ -27,14 +27,10 @@ def calculate_user_similarity_profile(ratings_matrix, new_user_ratings):
     """
     num_users, num_movies = ratings_matrix.get_shape()
 
-    #Converts the user reviews dictionary to a 1x|M| vector
-    #of user ratings with the same indices as the ratings matrix
-    vector_user_ratings = ratings_matrix.get_ratings_vector(new_user_ratings)
-
     user_similarities = sp.dok_matrix((1, num_users))
     for i in range(num_users):
 
-        user_similarities[0, i] = calculate_pairwise_user_similarity(ratings_matrix.getrow(i), vector_user_ratings)
+        user_similarities[0, i] = calculate_pairwise_user_similarity(ratings_matrix.getrow(i), ratings_vector)
 
     return user_similarities.tocsr()
 
@@ -90,7 +86,7 @@ class Recommendations_Vector_Collection:
     def from_user_ratings(cls, ratings_matrix, user_ratings_list, rec_method=single_user_recommendation_vector):
         rvc = Recommendations_Vector_Collection()
         for user_ratings in user_ratings_list:
-            rvc.rec_vectors.append(rec_method(ratings_matrix, user_ratings))
+            rvc.rec_vectors.append(rec_method(ratings_matrix, ratings_matrix.get_ratings_vector(user_ratings)))
         return rvc
 
     @classmethod
