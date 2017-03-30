@@ -173,5 +173,3 @@ class Movie_Scores:
             d["score"] = value
             output.append(d)
         return output
-
-
