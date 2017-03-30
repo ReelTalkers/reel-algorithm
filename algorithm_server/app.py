@@ -9,17 +9,15 @@ app = Flask(__name__)
 
 @app.route('/recommendations', methods=['POST'])
 def recommendations():
-    movie_scores = movie_scores_from_json(request.get_json())
-    return jsonify(movie_scores.output_as_keys_list())
+    return jsonify(movie_scores_from_json(request.get_json()).output_as_keys_list())
 
 
 @app.route('/relevance_scores', methods=['POST'])
 def relevance_scores():
-    movie_scores = movie_scores_from_json(request.get_json(), consider_cache=False)
-    return jsonify(movie_scores.output_as_scores_list())
+    return jsonify(movie_scores_from_json(request.get_json()).output_as_scores_list())
 
 
-def movie_scores_from_json(json, consider_cache=True):
+def movie_scores_from_json(json):
     quantity, agg_method, genre = parse_quantity(json), parse_method(json), parse_genre(json)
 
     user_ratings, cached_recs = io_utils.parse_mixed_user_ratings_cached_data(json, movielens_to_imdb_bidict)
@@ -27,7 +25,7 @@ def movie_scores_from_json(json, consider_cache=True):
     rated_movies = rated_movies_set(user_ratings)
 
     rvc = Recommendations_Vector_Collection.from_user_ratings(ratings_matrix, user_ratings)
-    if(consider_cache):
+    if(len(cached_recs) > 0):
         rvc += Recommendations_Vector_Collection.from_cached_scores(ratings_matrix, cached_recs)
 
     rec_vector = group_recommendation_vector(rvc, agg_method)
