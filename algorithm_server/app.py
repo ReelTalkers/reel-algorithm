@@ -34,7 +34,7 @@ def movie_scores_from_json(json):
 
     movie_scores = Movie_Scores.from_score_vector(ratings_matrix, group_vector, rated_movies)
 
-    movie_scores.filter_on_genre(genre, movielens_to_genre_bidict)
+    movie_scores.filter_on_genre(genre, movielens_to_genre)
 
     movie_scores.trim_to_top_k(quantity)
 
@@ -53,7 +53,7 @@ def parse_method(json):
 
 def parse_genre(json):
     genre = json.get("genre", None)
-    if(genre and genre not in movielens_to_genre_bidict.values()):
+    if(genre and genre not in legal_genres):
         genre = None
     return genre
 
@@ -65,12 +65,14 @@ def rated_movies_set(user_ratings):
 def set_globals(datadir):
     global ratings_matrix
     global movielens_to_imdb_bidict
-    global movielens_to_genre_bidict
+    global movielens_to_genre
+    global legal_genres
     global recommenders
 
     ratings_matrix = io_utils.User_Movie_Matrix.from_datadir(datadir)
     movielens_to_imdb_bidict = io_utils.get_movie_links_dict(datadir)
-    movielens_to_genre_bidict = io_utils.get_genre_mapping(datadir)
+    movielens_to_genre = io_utils.get_genre_mapping(datadir)
+    legal_genres = set().union(*[m for m in movielens_to_genre.values()])
 
     recommenders = {}
     recommenders["least_misery"] = Least_Misery_Recommender

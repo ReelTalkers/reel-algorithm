@@ -184,8 +184,13 @@ class Movie_Scores:
 
         self.items = trimmed
 
-    def filter_on_genre(self, genre, movielens_to_genre_bidict):
-        return self
+    def filter_on_genre(self, genre, movielens_to_genre):
+        if(not genre):
+            return
+
+        for key in self.items.keys():
+            if(genre not in movielens_to_genre[key]):
+                del self.items[key]
 
     def convert_indices_to_imdb(self, movie_id_mapper):
         self.id_type = "imdb"
