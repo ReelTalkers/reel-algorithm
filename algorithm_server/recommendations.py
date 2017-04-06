@@ -2,99 +2,97 @@ import scipy.sparse as sp
 from collections import OrderedDict
 
 
-def single_user_recommendation_vector(ratings_matrix, ratings_vector):
-    """
-    Computes a 1x|M| movie recommendation vector for a given user.
+class Recommender:
 
-    ratings_matrix is a |U|x|M| matrix composed of prior user ratings
-    rating_vector is a 1x|M| sparse vector of userr ratings
-    """
+    def __init__(self, ratings_matrix):
+        """
+        ratings_matrix is a |U|x|M| matrix composed of prior user ratings
+        """
+        self.ratings_matrix = ratings_matrix
 
-    user_similarity_profile = calculate_user_similarity_profile(ratings_matrix, ratings_vector)
+    def single_user_recommendation_vector(self, ratings_vector):
+        """
+        Computes a 1x|M| movie recommendation vector for a given user.
+        rating_vector is a 1x|M| sparse vector of user ratings
+        """
 
-    return calculate_item_relevance_scores(ratings_matrix, user_similarity_profile)
+        user_similarity_profile = self.calculate_user_similarity_profile(ratings_vector)
 
+        return self.calculate_item_relevance_scores(user_similarity_profile)
 
-def calculate_user_similarity_profile(ratings_matrix, ratings_vector):
-    """
-    ratings_matrix is a |U|x|M| matrix composed of prior user ratings
+    def calculate_user_similarity_profile(self, ratings_vector):
+        """
+        rating_vector is a 1x|M| sparse vector of userr ratings
 
-    rating_vector is a 1x|M| sparse vector of userr ratings
+        We want to return a 1x|U| dense user similiarity vector
 
-    We want to return a 1x|U| dense user similiarity vector
+        """
+        num_users, num_movies = self.ratings_matrix.get_shape()
 
-    """
-    num_users, num_movies = ratings_matrix.get_shape()
+        user_similarities = sp.dok_matrix((1, num_users))
+        for i in range(num_users):
 
-    user_similarities = sp.dok_matrix((1, num_users))
-    for i in range(num_users):
+            user_similarities[0, i] = self.calculate_pairwise_user_similarity(self.ratings_matrix.getrow(i), ratings_vector)
 
-        user_similarities[0, i] = calculate_pairwise_user_similarity(ratings_matrix.getrow(i), ratings_vector)
+        return user_similarities.tocsr()
 
-    return user_similarities.tocsr()
+    def calculate_pairwise_user_similarity(self, user1_preferences, user2_preferences):
+        """
+        Both user preferences parameters are sparse 1x|M| vectors corresponding to movie ratings.
+        Computes a scalar value (float in range (0, 1)), that corresponds to how similar the users are.
 
+        User similarity = (number of movie agreements) / (number of shared reviews)
+        A movie agreement is defined as a movie for which the ratings of the two users were within 2 stars of each other
+        A shared review is defined as a movie for which both users provided a review
 
-def calculate_pairwise_user_similarity(user1_preferences, user2_preferences):
-    """
-    Both user preferences parameters are sparse 1x|M| vectors corresponding to movie ratings.
-    Computes a scalar value (float in range (0, 1)), that corresponds to how similar the users are.
+        """
 
-    User similarity = (number of movie agreements) / (number of shared reviews)
-    A movie agreement is defined as a movie for which the ratings of the two users were within 2 stars of each other
-    A shared review is defined as a movie for which both users provided a review
+        shared_items = set(user1_preferences.indices) & set(user2_preferences.indices)
 
-    """
+        num_agreements = sum(1 for x in shared_items if abs(user1_preferences[0, x] - user2_preferences[0, x]) <= 2)
 
-    shared_items = set(user1_preferences.indices) & set(user2_preferences.indices)
+        return (num_agreements / len(shared_items) if len(shared_items) > 0 else 0)
 
-    num_agreements = sum(1 for x in shared_items if abs(user1_preferences[0, x] - user2_preferences[0, x]) <= 2)
+    def calculate_item_relevance_scores(self, user_similarity_profile):
+        """
+        Calculates item relevance scores for each item in the |U|x|M| ratings matrix
 
-    return (num_agreements / len(shared_items) if len(shared_items) > 0 else 0)
+        user_similarity_profile is a 1x|U| user similarity vector, where each entry corresponds to the similarity between
+        the user we are generating recommendations for and a user entry in the ratings_matrix
+        """
+        return user_similarity_profile.dot(self.ratings_matrix.matrix) / sum(user_similarity_profile.data)
 
+    def group_recommendation_vector(rec_vectors, agg_method, **kwargs):
+        """
+        Computes a 1x|M| movie recommendation vector for a group of users using a specified aggregation function,
+        given the users individual recommendation vectors.
 
-def calculate_item_relevance_scores(ratings_matrix, user_similarity_profile):
-    """
-    Calculates item relevance scores for each item in the |U|x|M| ratings matrix
+        rec_vectors is a Recommendations_Vector_Collection
+        ratings_matrix is a |U|x|M| matrix composed of prior user ratings
 
-    user_similarity_profile is a 1x|U| user similarity vector, where each entry corresponds to the similarity between
-    the user we are generating recommendations for and a user entry in the ratings_matrix
-    """
-    return user_similarity_profile.dot(ratings_matrix.matrix) / sum(user_similarity_profile.data)
+        agg_method is an recommendations aggregation function
+            should be either least_misery_aggregation or disagreement_variance_aggregation
+        """
+        return agg_method(rec_vectors, **kwargs)
 
+    def least_misery_aggregation(rvc, **kwargs):
+        group_rec_vector = sp.dok_matrix(rvc.get_vector_shape())
 
-def group_recommendation_vector(rec_vectors, agg_method, **kwargs):
-    """
-    Computes a 1x|M| movie recommendation vector for a group of users using a specified aggregation function,
-    given the users individual recommendation vectors.
+        for i in range(group_rec_vector.shape[1]):
+            group_rec_vector[0, i] = rvc.min_at_index(i)
 
-    rec_vectors is a Recommendations_Vector_Collection
-    ratings_matrix is a |U|x|M| matrix composed of prior user ratings
+        return group_rec_vector.tocsr()
 
-    agg_method is an recommendations aggregation function
-        should be either least_misery_aggregation or disagreement_variance_aggregation
-    """
-    return agg_method(rec_vectors, **kwargs)
+    def disagreement_variance_aggregation(rvc, **kwargs):
+        mean_weight = kwargs.get("mean_weight", .8)
 
+        group_rec_vector = sp.dok_matrix(rvc.get_vector_shape())
 
-def least_misery_aggregation(rvc, **kwargs):
-    group_rec_vector = sp.dok_matrix(rvc.get_vector_shape())
+        for i in range(group_rec_vector.shape[1]):
+            mean, var = rvc.mean_and_var_at_index(i)
+            group_rec_vector[0, i] = mean_weight * mean + (1 - mean_weight) * (1 - var)
 
-    for i in range(group_rec_vector.shape[1]):
-        group_rec_vector[0, i] = rvc.min_at_index(i)
-
-    return group_rec_vector.tocsr()
-
-
-def disagreement_variance_aggregation(rvc, **kwargs):
-    mean_weight = kwargs.get("mean_weight", .8)
-
-    group_rec_vector = sp.dok_matrix(rvc.get_vector_shape())
-
-    for i in range(group_rec_vector.shape[1]):
-        mean, var = rvc.mean_and_var_at_index(i)
-        group_rec_vector[0, i] = mean_weight * mean + (1 - mean_weight) * (1 - var)
-
-    return group_rec_vector.tocsr()
+        return group_rec_vector.tocsr()
 
 
 class Recommendations_Vector_Collection:
