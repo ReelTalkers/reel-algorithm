@@ -188,9 +188,13 @@ class Movie_Scores:
         if(not genre):
             return
 
-        for key in self.items.keys():
-            if(genre not in movielens_to_genre[key]):
-                del self.items[key]
+        filtered = OrderedDict()
+
+        for key, value in self.items.items():
+            if(genre in movielens_to_genre[key]):
+                filtered[key] = value
+
+        self.items = filtered
 
     def convert_indices_to_imdb(self, movie_id_mapper):
         self.id_type = "imdb"
