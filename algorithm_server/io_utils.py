@@ -95,6 +95,7 @@ def get_movie_description_stream(datadir):
             if(len(t) > 3):
                 middle = "".join(x for x in t[1:-1])
                 t = (t[0], middle, t[-1])
+            t[-1] = set(t[-1].split("|"))
 
             yield(tuple(t))
 
@@ -117,6 +118,14 @@ def get_movie_links_dict(datadir):
     return links
 
 
+def get_genre_mapping(datadir):
+    genre_map = bidict()
+    for id, title, genre_set in get_movie_description_stream():
+        genre_map[id] = genre_set
+
+    return genre_map
+
+
 def json_ratings_to_dict(json_ratings, movielens_to_imdb, field_name="rating"):
     ratings = {}
     for item in json_ratings:
@@ -130,10 +139,6 @@ def json_ratings_to_dict(json_ratings, movielens_to_imdb, field_name="rating"):
 
 def get_user_rating_list(json_ratings, movielens_to_imdb_bidict):
     return [json_ratings_to_dict(u["ratings"], movielens_to_imdb_bidict) for u in json_ratings["users"]]
-
-
-def get_genre_mapping(datadir):
-    return {}
 
 
 def parse_mixed_user_ratings_cached_data(json_ratings, movielens_to_imdb_bidict):
