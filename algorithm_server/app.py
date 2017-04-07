@@ -9,16 +9,27 @@ app = Flask(__name__)
 
 @app.route('/recommendations', methods=['POST'])
 def recommendations():
-    return jsonify(movie_scores_from_json(request.get_json()).output_as_keys_list())
+    json = request.get_json()
+
+    movie_scores = movie_scores_from_json(json)
+    quantity = parse_quantity(json)
+
+    movie_scores_by_genre = movie_scores.split_by_genre(legal_genres, movielens_to_genre, quantity)
+
+    for movie_score in movie_scores_by_genre.values():
+        movie_score.convert_indices_to_imdb(movielens_to_imdb_bidict)
+
+    return jsonify({genre: movie_score.output_as_keys_list() for genre, movie_score in movie_scores_by_genre.items()})
 
 
 @app.route('/relevance_scores', methods=['POST'])
 def relevance_scores():
-    return jsonify(movie_scores_from_json(request.get_json()).output_as_scores_list())
+    kwargs = {"use_quantity": True, "convert_indices": True}
+    return jsonify(movie_scores_from_json(request.get_json(), **kwargs).output_as_scores_list())
 
 
-def movie_scores_from_json(json):
-    quantity, method, genre = parse_quantity(json), parse_method(json), parse_genre(json)
+def movie_scores_from_json(json, use_quantity=False, convert_indices=False):
+    method = parse_method(json)
 
     user_ratings, cached_recs = io_utils.parse_mixed_user_ratings_cached_data(json, movielens_to_imdb_bidict)
 
@@ -34,11 +45,12 @@ def movie_scores_from_json(json):
 
     movie_scores = Movie_Scores.from_score_vector(ratings_matrix, group_vector, rated_movies)
 
-    movie_scores.filter_on_genre(genre, movielens_to_genre)
+    if(use_quantity):
+        quantity = parse_quantity(json)
+        movie_scores.trim_to_top_k(quantity)
 
-    movie_scores.trim_to_top_k(quantity)
-
-    movie_scores.convert_indices_to_imdb(movielens_to_imdb_bidict)
+    if(convert_indices):
+        movie_scores.convert_indices_to_imdb(movielens_to_imdb_bidict)
 
     return movie_scores
 
@@ -49,13 +61,6 @@ def parse_quantity(json):
 
 def parse_method(json):
     return recommenders.get(json.get("method", ""), Least_Misery_Recommender)
-
-
-def parse_genre(json):
-    genre = json.get("genre", None)
-    if(genre and genre not in legal_genres):
-        genre = None
-    return genre
 
 
 def rated_movies_set(user_ratings):

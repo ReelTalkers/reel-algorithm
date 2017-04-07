@@ -184,17 +184,28 @@ class Movie_Scores:
 
         self.items = trimmed
 
-    def filter_on_genre(self, genre, movielens_to_genre):
-        if(not genre):
-            return
 
-        filtered = OrderedDict()
+    def split_by_genre(self, legal_genres, movielens_to_genre, movies_per_genre):
+        genre_dict = {genre: Movie_Scores() for genre in legal_genres}
+        genre_dict["Top"] = Movie_Scores()
 
-        for key, value in self.items.items():
-            if(genre in movielens_to_genre[key]):
-                filtered[key] = value
+        full_genres = {genre: False for genre in legal_genres}
 
-        self.items = filtered
+        for i, item in enumerate(self.items.items()):
+            if(all(full_genres.values())):
+                return genre_dict
+
+            movie, score = item
+
+            genres = movielens_to_genre[movie]
+            genres.add("Top")
+            for genre in genres:
+                if(len(genre_dict[genre]) >= movies_per_genre):
+                    full_genres[genre] = True
+                else:
+                    genre_dict[genre].add_movie(movie, score)
+
+        return genre_dict
 
     def convert_indices_to_imdb(self, movie_id_mapper):
         self.id_type = "imdb"
@@ -214,3 +225,6 @@ class Movie_Scores:
             d["score"] = value
             output.append(d)
         return output
+
+    def __len__(self):
+        return len(self.items)
