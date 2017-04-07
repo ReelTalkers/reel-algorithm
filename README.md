@@ -62,7 +62,6 @@ http://localhost:5000/recommendations
 ```
 {
 	"quantity": 10,
-	"genre": "Comedy",
 	"method": "least_misery",
 	"users": [
 		{
@@ -100,12 +99,27 @@ http://localhost:5000/recommendations
 
 #### Return JSON:
 
-Returns a list of "quantity" recommendations ordered by score.
+For each genre of movie in the movielens dataset,
+returns a list of the top "quantity" movies of that genre ordered by score
 
 ```
 [
-	"imdb": "tt0133093",
-	"imdb": "tt0076759"
+	{
+		"genre": "Top",
+		"movies": [
+			"imdb": "tt0133093",
+			"imdb": "tt0076759"
+		]
+	},
+	{
+		"genre": "Comedy",
+		"movies": [
+			"imdb": "tt0133093",
+			"imdb": "tt0076759"
+		]
+	},
+
+	...
 ]
 
 ```
@@ -118,6 +132,10 @@ http://localhost:5000/relevance_scores
 Exactly the same as /recommendations, but "is_cached" must always be false
 
 #### Return JSON:
+
+Returns a list of movie score items.
+Each movie score items includes an IMDB identifier and a relevance score.
+Unlike the recommendations endpoint, these are not separated by score.
 
 ```
 [
