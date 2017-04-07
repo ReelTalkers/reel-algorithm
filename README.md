@@ -61,7 +61,7 @@ http://localhost:5000/recommendations
 
 ```
 {
-	"quantity": 10,
+	"quantity": 2,
 	"method": "least_misery",
 	"users": [
 		{
@@ -103,24 +103,91 @@ For each genre of movie in the movielens dataset,
 returns a list of the top "quantity" movies of that genre ordered by score
 
 ```
-[
-	{
-		"genre": "Top",
-		"movies": [
-			"imdb": "tt0133093",
-			"imdb": "tt0076759"
-		]
-	},
-	{
-		"genre": "Comedy",
-		"movies": [
-			"imdb": "tt0133093",
-			"imdb": "tt0076759"
-		]
-	},
-
-	...
-]
+{
+	"(no genres listed)": [
+		"tt0113112"
+	],
+	"Action": [
+		"tt0133093",
+		"tt0076759"
+	],
+	"Adventure": [
+		"tt0076759",
+		"tt0092513"
+	],
+	"Animation": [
+		"tt0448694",
+		"tt1482459"
+	],
+	"Children": [
+		"tt0041890",
+		"tt0057063"
+	],
+	"Comedy": [
+		"tt0056923",
+		"tt0025878"
+	],
+	"Crime": [
+		"tt0056923",
+		"tt0025878"
+	],
+	"Documentary": [
+		"tt0386032",
+		"tt0322802"
+	],
+	"Drama": [
+		"tt0117247",
+		"tt0101787"
+	],
+	"Fantasy": [
+		"tt0448694",
+		"tt0037988"
+	],
+	"Film-Noir": [
+		"tt0041959",
+		"tt0038787"
+	],
+	"Horror": [
+		"tt0037988",
+		"tt0286106"
+	],
+	"IMAX": [
+		"tt0448694",
+		"tt1055369"
+	],
+	"Musical": [
+		"tt0061015",
+		"tt0080716"
+	],
+	"Mystery": [
+		"tt0056923",
+		"tt0046912"
+	],
+	"Romance": [
+		"tt0056923",
+		"tt0117247"
+	],
+	"Sci-Fi": [
+		"tt0133093",
+		"tt0076759"
+	],
+	"Thriller": [
+		"tt0133093",
+		"tt0056923"
+	],
+	"Top": [
+		"tt0133093",
+		"tt0076759"
+	],
+	"War": [
+		"tt0080310",
+		"tt0031381"
+	],
+	"Western": [
+		"tt0040897",
+		"tt0039152"
+	]
+}
 
 ```
 
@@ -135,7 +202,7 @@ Exactly the same as /recommendations, but "is_cached" must always be false
 
 Returns a list of movie score items.
 Each movie score items includes an IMDB identifier and a relevance score.
-Unlike the recommendations endpoint, these are not separated by score.
+Unlike the recommendations endpoint, these are not separated by genre.
 
 ```
 [
