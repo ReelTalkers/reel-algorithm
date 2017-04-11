@@ -6,21 +6,20 @@ class User_Movie_Matrix:
 
     @classmethod
     def from_datadir(cls, datadir):
-        matrix = cls()
+        matrix = cls(get_matrix_dimension(datadir))
 
         for userId, movieId, rating in get_ratings_stream(datadir):
             matrix.add_rating(userId, movieId, float(rating))
 
-        matrix.build_matrix()
+        matrix.convert_to_csr()
         return matrix
 
-    def __init__(self):
+    def __init__(self, dimension):
         #Map the user and movie ids from the MovieLens dataset to indices in the User-Movie matrix
         self.user_id_index = {}
         self.movie_id_index = bidict()
 
-        self.temp_storage_dict = {}
-        self.matrix = dok_matrix((1, 1))
+        self.matrix = dok_matrix(dimension)
 
     def get_shape(self):
         return self.matrix.shape
@@ -51,19 +50,13 @@ class User_Movie_Matrix:
     def add_rating(self, user, movie, rating):
         self.update_index(self.user_id_index, user)
         self.update_index(self.movie_id_index, movie)
-        self.temp_storage_dict[(user, movie)] = rating - 3
+        self.matrix[self.user_id_index[user], self.movie_id_index[movie]] = rating - 3
 
     def update_index(self, index, identifier):
         if(identifier not in index):
             index[identifier] = len(index)
 
-    def build_matrix(self):
-        self.matrix = dok_matrix((len(self.user_id_index), len(self.movie_id_index)))
-        for key, value in list(self.temp_storage_dict.items()):
-            user, movie = key
-            self.matrix[self.user_id_index[user], self.movie_id_index[movie]] = value
-            del(self.temp_storage_dict[key])
-        del(self.temp_storage_dict)
+    def convert_to_csr(self):
         self.matrix = self.matrix.tocsr()
 
 
@@ -86,6 +79,17 @@ def get_ratings_stream(datadir):
     for i, line in enumerate(open(ratings_file(datadir), "r")):
         if(i >= 1):
             yield tuple(str(line).strip().split(",")[:3])
+
+
+def get_matrix_dimension(datadir):
+    users = set()
+    movies = set()
+
+    for user, movie, rating in get_ratings_stream(datadir):
+        users.add(user)
+        movies.add(movie)
+
+    return len(users), len(movies)
 
 
 def get_movie_description_stream(datadir):
