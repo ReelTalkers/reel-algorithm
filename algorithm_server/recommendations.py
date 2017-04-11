@@ -184,8 +184,18 @@ class Movie_Scores:
 
         self.items = trimmed
 
+    def convert_indices_to_imdb(self, movie_id_mapper):
+        self.id_type = "imdb"
+        items = OrderedDict()
+        for key, value in self.items.items():
+            items[movie_id_mapper[key]] = value
+        self.items = items
 
-    def split_by_genre(self, legal_genres, movielens_to_genre, movies_per_genre):
+    def output_as_keys_list(self):
+        return list(self.items.keys())
+
+    def output_as_genre_separated_keys_list(self, legal_genres, movielens_to_imdb, 
+                                                  movielens_to_genre, movies_per_genre):
         genre_dict = {genre: Movie_Scores() for genre in legal_genres}
         genre_dict["Top"] = Movie_Scores()
 
@@ -205,17 +215,14 @@ class Movie_Scores:
                 else:
                     genre_dict[genre].add_movie(movie, score)
 
+        for movie_score in genre_dict.values():
+            movie_score.convert_indices_to_imdb(movielens_to_imdb)
+
+        for key in list(genre_dict.keys()):
+            genre_dict[key] = genre_dict[key].output_as_keys_list()
+
         return genre_dict
 
-    def convert_indices_to_imdb(self, movie_id_mapper):
-        self.id_type = "imdb"
-        items = OrderedDict()
-        for key, value in self.items.items():
-            items[movie_id_mapper[key]] = value
-        self.items = items
-
-    def output_as_keys_list(self):
-        return list(self.items.keys())
 
     def output_as_scores_list(self):
         output = []
@@ -225,6 +232,8 @@ class Movie_Scores:
             d["score"] = value
             output.append(d)
         return output
+
+
 
     def __len__(self):
         return len(self.items)

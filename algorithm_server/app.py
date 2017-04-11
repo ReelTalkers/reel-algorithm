@@ -14,12 +14,8 @@ def recommendations():
     movie_scores = movie_scores_from_json(json)
     quantity = parse_quantity(json)
 
-    movie_scores_by_genre = movie_scores.split_by_genre(legal_genres, movielens_to_genre, quantity)
-
-    for movie_score in movie_scores_by_genre.values():
-        movie_score.convert_indices_to_imdb(movielens_to_imdb_bidict)
-
-    return jsonify({genre: movie_score.output_as_keys_list() for genre, movie_score in movie_scores_by_genre.items()})
+    return jsonify(movie_scores.output_as_genre_separated_keys_list(legal_genres, movielens_to_imdb_bidict, 
+                                                                                  movielens_to_genre, quantity))
 
 
 @app.route('/relevance_scores', methods=['POST'])
