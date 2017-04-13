@@ -11,6 +11,8 @@ app = Flask(__name__)
 def recommendations():
     json = request.get_json()
 
+    log(str(json))
+
     movie_scores = movie_scores_from_json(json)
     quantity = parse_quantity(json)
 
@@ -63,12 +65,20 @@ def rated_movies_set(user_ratings):
     return set().union(*[u.keys() for u in user_ratings])
 
 
-def set_globals(datadir):
+def log(to_file):
+    logger = open(logfile, "a")
+    logger.write(to_file)
+    logger.write("\n")
+    logger.close()
+
+
+def set_globals(datadir, log_filepath):
     global ratings_matrix
     global movielens_to_imdb_bidict
     global movielens_to_genre
     global legal_genres
     global recommenders
+    global logfile
 
     ratings_matrix = io_utils.User_Movie_Matrix.from_datadir(datadir)
     movielens_to_imdb_bidict = io_utils.get_movie_links_dict(datadir)
@@ -79,7 +89,9 @@ def set_globals(datadir):
     recommenders["least_misery"] = Least_Misery_Recommender
     recommenders["disagreement_variance"] = Disagreement_Variance_Recommender
 
+    logfile = log_filepath
 
-def start_server(datadir):
-    set_globals(datadir)
+
+def start_server(datadir, logfile):
+    set_globals(datadir, logfile)
     app.run(debug=True)
