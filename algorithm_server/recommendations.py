@@ -203,7 +203,7 @@ class Movie_Scores:
 
         for i, item in enumerate(self.items.items()):
             if(all(full_genres.values())):
-                return genre_dict
+                break
 
             movie, score = item
 
