@@ -218,10 +218,7 @@ class Movie_Scores:
         for movie_score in genre_dict.values():
             movie_score.convert_indices_to_imdb(movielens_to_imdb)
 
-        for key in list(genre_dict.keys()):
-            genre_dict[key] = genre_dict[key].output_as_keys_list()
-
-        return genre_dict
+        return {genre: movie_score.output_as_keys_list() for genre, movie_score in genre_dict.items()}
 
 
     def output_as_scores_list(self):
