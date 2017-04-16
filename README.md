@@ -188,8 +188,31 @@ returns a list of the top "quantity" movies of that genre ordered by score
 		"tt0039152"
 	]
 }
+```
+
+
+### Similar Movies
+#### URL:
+http://localhost:5000/similar_movies
+
+#### JSON:
 
 ```
+{
+	"quantity": 10,
+	"movies": [
+		"tt0106611",
+		"tt0268380",
+		"tt0374900",
+		"tt0361748",
+		"tt0445922"
+	]
+}
+```
+
+#### Return JSON:
+Same as for /recommendations
+
 
 ### Group Relevance Scores
 #### URL:
