@@ -13,10 +13,10 @@ def recommendations():
 
     log(str(json))
 
-    movie_scores = movie_scores_from_json(json)
+    scores = movie_scores_from_json(json)
     quantity = parse_quantity(json)
 
-    return jsonify(movie_scores.output_as_genre_separated_keys_list(legal_genres, movielens_to_imdb_bidict, 
+    return jsonify(scores.output_as_genre_separated_keys_list(legal_genres, movielens_to_imdb_bidict, 
                                                                                   movielens_to_genre, quantity))
 
 @app.route('/similar_movies', methods=['POST'])
@@ -32,10 +32,8 @@ def similar_movies():
 
     scores = Movie_Scores.from_score_vector(ratings_matrix, rvc.get_vector(0), set(movies))
 
-    scores.trim_to_top_k(quantity)
-    scores.convert_indices_to_imdb(movielens_to_imdb_bidict)
-
-    return jsonify(scores.output_as_keys_list())
+    return jsonify(scores.output_as_genre_separated_keys_list(legal_genres, movielens_to_imdb_bidict, 
+                                                                                  movielens_to_genre, quantity))
 
 @app.route('/relevance_scores', methods=['POST'])
 def relevance_scores():

@@ -233,7 +233,5 @@ class Movie_Scores:
             output.append(d)
         return output
 
-
-
     def __len__(self):
         return len(self.items)
