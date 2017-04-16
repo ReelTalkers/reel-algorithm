@@ -140,6 +140,9 @@ class Recommendations_Vector_Collection:
     def __init__(self):
         self.rec_vectors = []
 
+    def get_vector(self, i):
+        return self.rec_vectors[i]
+
     def get_vector_shape(self):
         return self.rec_vectors[0].shape
 

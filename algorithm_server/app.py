@@ -19,6 +19,23 @@ def recommendations():
     return jsonify(movie_scores.output_as_genre_separated_keys_list(legal_genres, movielens_to_imdb_bidict, 
                                                                                   movielens_to_genre, quantity))
 
+@app.route('/similar_movies', methods=['POST'])
+def similar_movies():
+    json = request.get_json()
+
+    quantity = parse_quantity(json)
+    movies = json.get('movies', [])
+
+    user_ratings = [{movielens_to_imdb_bidict.inv[m]: 5.0 for m in movies}]
+
+    rvc = Recommendations_Vector_Collection.from_user_ratings(ratings_matrix, user_ratings)
+
+    scores = Movie_Scores.from_score_vector(ratings_matrix, rvc.get_vector(0), set(movies))
+
+    scores.trim_to_top_k(quantity)
+    scores.convert_indices_to_imdb(movielens_to_imdb_bidict)
+
+    return jsonify(scores.output_as_keys_list())
 
 @app.route('/relevance_scores', methods=['POST'])
 def relevance_scores():

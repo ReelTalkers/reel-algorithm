@@ -4,6 +4,8 @@ from bidict import bidict
 
 class User_Movie_Matrix:
 
+    ratings_adjustment = -3
+
     @classmethod
     def from_datadir(cls, datadir):
         matrix = cls(get_matrix_dimension(datadir))
@@ -43,14 +45,14 @@ class User_Movie_Matrix:
 
         vector = csr_matrix((1, self.get_shape()[1]))
         for x in preferences:
-            vector[0, self.movie_id_index[x]] = preferences[x]
+            vector[0, self.movie_id_index[x]] = preferences[x] + self.ratings_adjustment
 
         return vector
 
     def add_rating(self, user, movie, rating):
         self.update_index(self.user_id_index, user)
         self.update_index(self.movie_id_index, movie)
-        self.matrix[self.user_id_index[user], self.movie_id_index[movie]] = rating - 3
+        self.matrix[self.user_id_index[user], self.movie_id_index[movie]] = rating + self.ratings_adjustment
 
     def update_index(self, index, identifier):
         if(identifier not in index):
