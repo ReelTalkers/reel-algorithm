@@ -5,10 +5,12 @@ import json
 
 
 ratings_files = ["data/sample_users/andrew.txt", "data/sample_users/galen.txt"]
-datadir = "data/movielens/ml-10000"
+datadir = "data/movielens/ml-latest-small"
 
 client = app.app.test_client()
 app.set_globals(datadir, "log.txt")
+
+print("Finished loading matrix")
 
 
 def test_similar_to_childrens_movies():
@@ -18,10 +20,10 @@ def test_similar_to_childrens_movies():
 	title_map = io_utils.get_title_mapping(datadir)
 
 	movies = [movielens_to_imdb[x] for x in popular_childrens_movies]
-
+	print(movies)
 
 	request = {}
-	request["quantity"] = 10
+	request["quantity"] = 100
 	request["movies"] = movies
 
 	response = client.post('/similar_movies', data=json.dumps(request), content_type='application/json')

@@ -4,7 +4,7 @@ from bidict import bidict
 
 class User_Movie_Matrix:
 
-    ratings_adjustment = 0
+    ratings_adjustment = -3
 
     @classmethod
     def from_datadir(cls, datadir):
@@ -13,6 +13,7 @@ class User_Movie_Matrix:
         for userId, movieId, rating in get_ratings_stream(datadir):
             matrix.add_rating(userId, movieId, float(rating))
 
+        #matrix.update_columns_sum_vector()
         matrix.convert_to_csr()
         return matrix
 
@@ -22,6 +23,8 @@ class User_Movie_Matrix:
         self.movie_id_index = bidict()
 
         self.matrix = dok_matrix(dimension)
+        self.column_sums = dok_matrix((1, dimension[1]))
+        self.num_ratings = 0
 
     def get_shape(self):
         return self.matrix.shape
@@ -49,16 +52,27 @@ class User_Movie_Matrix:
 
         return vector
 
+
     def add_rating(self, user, movie, rating):
         self.update_index(self.user_id_index, user)
         self.update_index(self.movie_id_index, movie)
+        self.column_sums[0, self.movie_id_index[movie]] += 1
+        self.num_ratings += 1
         self.matrix[self.user_id_index[user], self.movie_id_index[movie]] = rating + self.ratings_adjustment
 
     def update_index(self, index, identifier):
         if(identifier not in index):
             index[identifier] = len(index)
 
+    def update_columns_sum_vector(self):
+        for i in range(self.matrix.shape[1]):
+            col = self.matrix.getcol(i)
+            self.column_sums[0, i] = self.matrix.getcol(i).getnnz()
+
+        self.column_sums = self.column_sums.tocsr()
+
     def convert_to_csr(self):
+        self.column_sums = self.column_sums.tocsr()
         self.matrix = self.matrix.tocsr()
 
 

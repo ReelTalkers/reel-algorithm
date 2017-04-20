@@ -1,5 +1,6 @@
 import scipy.sparse as sp
 from collections import OrderedDict
+import math
 
 
 class Aggregation_Functions:
@@ -80,10 +81,13 @@ class Recommender:
         user_similarity_profile is a 1x|U| user similarity vector, where each entry corresponds to the similarity between
         the user we are generating recommendations for and a user entry in the ratings_matrix
         """
-        return user_similarity_profile.dot(self.ratings_matrix.matrix) / sum(user_similarity_profile.data)
+        scores = user_similarity_profile.dot(self.ratings_matrix.matrix)
+        for i in range(scores.get_shape()[1]):
+            scores[0, i] /= (1 + math.log(self.ratings_matrix.column_sums[0, i], 2))
+        return scores
 
 
-class Group_Recommender(Recommender):
+class Group_Recommender():
 
     def group_recommendation_vector(self, rec_vectors, **kwargs):
         """
