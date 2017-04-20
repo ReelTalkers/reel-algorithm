@@ -11,9 +11,22 @@ app = Flask(__name__)
 def recommendations():
     json = request.get_json()
 
-    log(str(json))
+    method = parse_method(json)
 
-    scores = movie_scores_from_json(json)
+    user_ratings, cached_recs = io_utils.parse_mixed_user_ratings_cached_data(json, movielens_to_imdb_bidict)
+
+    rated_movies = rated_movies_set(user_ratings)
+
+    rvc = Recommendations_Vector_Collection.from_user_ratings(ratings_matrix, user_ratings)
+    if(len(cached_recs) > 0):
+        rvc += Recommendations_Vector_Collection.from_cached_scores(ratings_matrix, cached_recs)
+
+    recommender = method(ratings_matrix)
+
+    group_vector = recommender.group_recommendation_vector(rvc)
+
+    scores = Movie_Scores.from_score_vector(ratings_matrix, group_vector, rated_movies)
+
     quantity = parse_quantity(json)
 
     return jsonify(scores.output_as_genre_separated_keys_list(legal_genres, movielens_to_imdb_bidict, 
@@ -38,38 +51,6 @@ def similar_movies():
     scores.convert_indices_to_imdb(movielens_to_imdb_bidict)
 
     return jsonify(scores.output_as_keys_list())
-
-@app.route('/relevance_scores', methods=['POST'])
-def relevance_scores():
-    kwargs = {"use_quantity": True, "convert_indices": True}
-    return jsonify(movie_scores_from_json(request.get_json(), **kwargs).output_as_scores_list())
-
-
-def movie_scores_from_json(json, use_quantity=False, convert_indices=False):
-    method = parse_method(json)
-
-    user_ratings, cached_recs = io_utils.parse_mixed_user_ratings_cached_data(json, movielens_to_imdb_bidict)
-
-    rated_movies = rated_movies_set(user_ratings)
-
-    rvc = Recommendations_Vector_Collection.from_user_ratings(ratings_matrix, user_ratings)
-    if(len(cached_recs) > 0):
-        rvc += Recommendations_Vector_Collection.from_cached_scores(ratings_matrix, cached_recs)
-
-    recommender = method(ratings_matrix)
-
-    group_vector = recommender.group_recommendation_vector(rvc)
-
-    movie_scores = Movie_Scores.from_score_vector(ratings_matrix, group_vector, rated_movies)
-
-    if(use_quantity):
-        quantity = parse_quantity(json)
-        movie_scores.trim_to_top_k(quantity)
-
-    if(convert_indices):
-        movie_scores.convert_indices_to_imdb(movielens_to_imdb_bidict)
-
-    return movie_scores
 
 
 def parse_quantity(json):

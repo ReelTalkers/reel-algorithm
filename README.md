@@ -211,34 +211,21 @@ http://localhost:5000/similar_movies
 ```
 
 #### Return JSON:
-Same as for /recommendations
-
-
-### Group Relevance Scores
-#### URL:
-http://localhost:5000/relevance_scores
-
-#### JSON: 
-Exactly the same as /recommendations, but "is_cached" must always be false
-
-#### Return JSON:
-
-Returns a list of movie score items.
-Each movie score items includes an IMDB identifier and a relevance score.
-Unlike the recommendations endpoint, these are not separated by genre.
+Returns a list of keys for similar movies
 
 ```
 [
-	{
-		"imdb": "tt0133093",
-		"score": 0.8725195129822181
-	},
-	{
-		"imdb": "tt0076759",
-		"score": 0.8052612579104834
-	}
+	"tt0110912",
+	"tt0137523",
+	"tt0111161",
+	"tt0109830",
+	"tt0120737",
+	"tt0167260",
+	"tt0133093",
+	"tt0076759",
+	"tt0080684",
+	"tt0068646"
 ]
-
 ```
 
 ## Data Description
