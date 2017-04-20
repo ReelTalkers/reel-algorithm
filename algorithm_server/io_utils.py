@@ -127,6 +127,15 @@ def get_movie_links_dict(datadir):
     return links
 
 
+def get_title_mapping(datadir):
+    title_map = {}
+
+    for id, title, genre in get_movie_description_stream(datadir):
+        title_map[id] = str(title)
+
+    return title_map
+    
+
 def get_genre_mapping(datadir):
     genre_map = {}
     for id, title, genre in get_movie_description_stream(datadir):
@@ -161,3 +170,17 @@ def parse_mixed_user_ratings_cached_data(json_ratings, movielens_to_imdb_bidict)
             cached_data.append(json_ratings_to_dict(user["ratings"], movielens_to_imdb_bidict, field_name="score"))
 
     return user_ratings, cached_data
+
+def get_most_popular_movies_of_genre(datadir, genre, quantity):
+    genre_map = get_genre_mapping(datadir)
+
+    movies_of_genre = {x for x in genre_map.keys() if genre in genre_map[x]}
+
+    total_stars = {}
+
+    for uid, movie, rating in get_ratings_stream(datadir):
+        if(movie in movies_of_genre):
+            total_stars[movie] = total_stars.get(movie, 0.0) + float(rating)
+
+    return list(sorted(total_stars.keys(), key=lambda x: total_stars[x], reverse=True))[:quantity]
+
