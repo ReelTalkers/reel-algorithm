@@ -4,7 +4,7 @@ from bidict import bidict
 
 class User_Movie_Matrix:
 
-    ratings_adjustment = -3
+    ratings_adjustment = 0
 
     @classmethod
     def from_datadir(cls, datadir):
