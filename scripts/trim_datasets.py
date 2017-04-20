@@ -76,7 +76,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    for i in range(1, args.max_ratings_multiplier):
+    for i in range(1, args.max_ratings_multiplier + 1):
         num_ratings = i * args.base_num_ratings
         savedir = "%s-%d" % (args.savedir_base, num_ratings)
 
