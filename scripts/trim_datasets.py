@@ -67,6 +67,9 @@ def get_users_to_keep(ratings_per_user, num_ratings):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--datadir', type=str, help='Original data directory of movielens dataset.')
+    parser.add_argument('--savedir_base', type=str, help='Location to save new data directories.')
+    parser.add_argument('--base_num_ratings', type=int, help='Number of base ratings to keep')
+    parser.add_argument('--max_ratings_multiplier', type=int, help='Max multiploer for base_num_ratings')
 
     parser.set_defaults(datadir="data/movielens/ml-latest-small", savedir_base="data/movielens/ml",
                         base_num_ratings=100000, max_ratings_multiplier=10)
