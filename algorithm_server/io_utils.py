@@ -118,7 +118,11 @@ def get_movie_links_dict(datadir):
     links = bidict()
 
     for line in get_links_stream(datadir):
-        links[line[0]] = "tt" + line[1]
+        movielens = line[0]
+        imdb = "tt" + line[1]
+
+        if(not (movielens in links or imdb in links.inv)):
+            links[line[0]] = "tt" + line[1]
 
     return links
 
