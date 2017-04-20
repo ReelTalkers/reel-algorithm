@@ -89,6 +89,12 @@ class Recommender:
 
 class Group_Recommender():
 
+    def __init__(self, ratings_matrix):
+        """
+        ratings_matrix is a |U|x|M| matrix composed of prior user ratings
+        """
+        self.ratings_matrix = ratings_matrix
+
     def group_recommendation_vector(self, rec_vectors, **kwargs):
         """
         Computes a 1x|M| movie recommendation vector for a group of users using a specified aggregation function,
