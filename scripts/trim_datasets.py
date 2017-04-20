@@ -78,4 +78,8 @@ if __name__ == "__main__":
 
     for i in range(1, args.max_ratings_multiplier):
         num_ratings = i * args.base_num_ratings
-        trim_dataset(args.datadir, "%s-%d" % (args.savedir_base, num_ratings), num_ratings)
+        savedir = "%s-%d" % (args.savedir_base, num_ratings)
+
+        print("Now genereating: %s" % savedir)
+
+        trim_dataset(args.datadir, savedir, num_ratings)
