@@ -14,7 +14,7 @@ print("Finished loading matrix")
 
 
 def test_similar_to_childrens_movies():
-	popular_childrens_movies = io_utils.get_most_popular_movies_of_genre(datadir, "Children", 10)
+	popular_childrens_movies = io_utils.get_most_popular_movies_of_genre(datadir, "Horror", 10)
 
 	movielens_to_imdb = io_utils.get_movie_links_dict(datadir)
 	title_map = io_utils.get_title_mapping(datadir)
@@ -25,6 +25,7 @@ def test_similar_to_childrens_movies():
 	request = {}
 	request["quantity"] = 100
 	request["movies"] = movies
+	request["min_year"] = 2006
 
 	response = client.post('/similar_movies', data=json.dumps(request), content_type='application/json')
 
@@ -33,3 +34,5 @@ def test_similar_to_childrens_movies():
 	movielens_response = [movielens_to_imdb.inv[x] for x in imdb_response]
 
 	print([title_map[x] for x in movielens_response])
+
+	assert len(imdb_response) == 100
