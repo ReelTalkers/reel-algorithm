@@ -15,6 +15,8 @@ class Matrix_Builder:
 
         matrix.column_sums = matrix.column_sums.tocsr()
         matrix.matrix = matrix.matrix.tocsr()
+
+        matrix.initialize_top_movies()
         return matrix
 
 
@@ -115,18 +117,6 @@ def get_user_rating_list(json_ratings, movielens_to_imdb_bidict):
     return [json_ratings_to_dict(u["ratings"], movielens_to_imdb_bidict) for u in json_ratings["users"]]
 
 
-def parse_mixed_user_ratings_cached_data(json_ratings, movielens_to_imdb_bidict):
-    user_ratings = []
-    cached_data = []
-
-    for user in json_ratings["users"]:
-        if("is_cached" not in user or not user["is_cached"]):
-            user_ratings.append(json_ratings_to_dict(user["ratings"], movielens_to_imdb_bidict))
-        else:
-            cached_data.append(json_ratings_to_dict(user["ratings"], movielens_to_imdb_bidict, field_name="score"))
-
-    return user_ratings, cached_data
-
 def get_most_popular_movies_of_genre(datadir, genre, quantity):
     genre_map = get_genre_mapping(datadir)
 
@@ -139,6 +129,7 @@ def get_most_popular_movies_of_genre(datadir, genre, quantity):
             total_stars[movie] = total_stars.get(movie, 0.0) + float(rating)
 
     return list(sorted(total_stars.keys(), key=lambda x: total_stars[x], reverse=True))[:quantity]
+
 
 def get_year_mapping(datadir):
     movielens_to_year = {}

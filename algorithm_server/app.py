@@ -13,13 +13,13 @@ def recommendations():
 
     method = parse_method(json)
 
-    user_ratings, cached_recs = io_utils.parse_mixed_user_ratings_cached_data(json, movielens_to_imdb_bidict)
+    user_ratings = io_utils.get_user_rating_list(json, movielens_to_imdb_bidict)
+
+    print(user_ratings)
 
     rated_movies = rated_movies_set(user_ratings)
 
     rvc = Recommendations_Vector_Collection.from_user_ratings(ratings_matrix, user_ratings)
-    if(len(cached_recs) > 0):
-        rvc += Recommendations_Vector_Collection.from_cached_scores(ratings_matrix, cached_recs)
 
     recommender = method(ratings_matrix)
 
@@ -54,6 +54,7 @@ def similar_movies():
     scores.convert_indices_to_imdb(movielens_to_imdb_bidict)
 
     return jsonify(scores.output_as_keys_list())
+
 
 
 def parse_quantity(json):

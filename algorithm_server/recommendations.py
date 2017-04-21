@@ -15,7 +15,25 @@ class User_Movie_Matrix:
 
         self.matrix = sp.dok_matrix(dimension)
         self.column_sums = sp.dok_matrix((1, dimension[1]))
+
+        self.top_movies = None
+
         self.num_ratings = 0
+
+    def initialize_top_movies(self):
+        user_dim = self.matrix.get_shape()[0]
+
+        user_similarities = sp.dok_matrix((1, user_dim))
+        for i in range(user_dim):
+            user_similarities[0, i] = 1 / user_dim
+
+        user_similarities = user_similarities.tocsr()
+
+        self.top_movies = user_similarities.dot(self.matrix)
+
+
+    def get_top_movies(self):
+        return self.top_movies
 
     def get_shape(self):
         return self.matrix.shape
@@ -162,6 +180,9 @@ class Group_Recommender():
         agg_method is an recommendations aggregation function
             should be either least_misery_aggregation or disagreement_variance_aggregation
         """
+        if(len(rec_vectors) == 1):
+            return rec_vectors.get_vector(0)
+
         group_vector = sp.dok_matrix(rec_vectors.get_vector_shape())
 
         for i in range(group_vector.shape[1]):
@@ -193,15 +214,14 @@ class Recommendations_Vector_Collection:
 
         rvc = Recommendations_Vector_Collection()
         for user_ratings in user_ratings_list:
-            rvc.rec_vectors.append(recommender.single_user_recommendation_vector(user_ratings))
+            if(len(user_ratings) > 0):
+                rvc.rec_vectors.append(recommender.single_user_recommendation_vector(user_ratings))
+
+        if(len(rvc) == 0):
+            rvc.rec_vectors.append(ratings_matrix.get_top_movies())
+
         return rvc
 
-    @classmethod
-    def from_cached_scores(cls, ratings_matrix, cached_scores_list):
-        rvc = Recommendations_Vector_Collection()
-        for cached_rec in cached_scores_list:
-            rvc.rec_vectors.append(ratings_matrix.get_ratings_vector(cached_rec))
-        return rvc
 
     def __init__(self):
         self.rec_vectors = []
@@ -215,9 +235,8 @@ class Recommendations_Vector_Collection:
     def values_at_index(self, i):
         return [x[0, i] for x in self.rec_vectors]
 
-    def __add__(self, x):
-        self.rec_vectors.extend(x.rec_vectors)
-        return self
+    def __len__(self):
+        return len(self.rec_vectors)
 
 
 class Movie_Scores:
