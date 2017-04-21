@@ -197,6 +197,19 @@ class Movie_Scores:
 
         self.items = trimmed
 
+    def filter_on_year(self, movielens_to_year, min_year):
+        if(not min_year):
+            return
+
+        filtered = OrderedDict()
+
+        for key in self.items.keys():
+            if(movielens_to_year[key] >= min_year):
+                filtered[key] = self.items[key]
+
+        self.items = filtered
+
+
     def convert_indices_to_imdb(self, movie_id_mapper):
         self.id_type = "imdb"
         items = OrderedDict()

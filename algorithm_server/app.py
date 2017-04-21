@@ -26,6 +26,7 @@ def recommendations():
     group_vector = recommender.group_recommendation_vector(rvc)
 
     scores = Movie_Scores.from_score_vector(ratings_matrix, group_vector, rated_movies)
+    scores.filter_on_year(movielens_to_year, parse_min_year(json))
 
     quantity = parse_quantity(json)
 
@@ -36,6 +37,7 @@ def recommendations():
 def similar_movies():
     json = request.get_json()
 
+    min_year = parse_min_year(json)
     quantity = parse_quantity(json)
     movies = json.get('movies', [])
 
@@ -47,6 +49,7 @@ def similar_movies():
 
     scores = Movie_Scores.from_score_vector(ratings_matrix, rvc.get_vector(0), set(movielens_movies))
 
+    scores.filter_on_year(movielens_to_year, min_year)
     scores.trim_to_top_k(quantity)
     scores.convert_indices_to_imdb(movielens_to_imdb_bidict)
 
@@ -59,6 +62,10 @@ def parse_quantity(json):
 
 def parse_method(json):
     return recommenders.get(json.get("method", ""), Least_Misery_Recommender)
+
+
+def parse_min_year(json):
+    return int(json.get("min_year", None))
 
 
 def rated_movies_set(user_ratings):
@@ -76,6 +83,7 @@ def set_globals(datadir, log_filepath):
     global ratings_matrix
     global movielens_to_imdb_bidict
     global movielens_to_genre
+    global movielens_to_year
     global legal_genres
     global recommenders
     global logfile
@@ -83,6 +91,7 @@ def set_globals(datadir, log_filepath):
     ratings_matrix = io_utils.User_Movie_Matrix.from_datadir(datadir)
     movielens_to_imdb_bidict = io_utils.get_movie_links_dict(datadir)
     movielens_to_genre = io_utils.get_genre_mapping(datadir)
+    movielens_to_year = io_utils.get_year_mapping(datadir)
     legal_genres = set().union(*[m for m in movielens_to_genre.values()])
 
     recommenders = {}
