@@ -1,79 +1,21 @@
-from scipy.sparse import *
+from algorithm_server.recommendations import *
 from bidict import bidict
 
 
-class User_Movie_Matrix:
-
-    ratings_adjustment = -3
+class Matrix_Builder:
 
     @classmethod
-    def from_datadir(cls, datadir):
-        matrix = cls(get_matrix_dimension(datadir))
+    def build_matrix(cls, datadir):
+        matrix = User_Movie_Matrix(get_matrix_dimension(datadir))
 
         for userId, movieId, rating in get_ratings_stream(datadir):
             matrix.add_rating(userId, movieId, float(rating))
 
-        #matrix.update_columns_sum_vector()
-        matrix.convert_to_csr()
+        matrix.adjust_column_sums()
+
+        matrix.column_sums = matrix.column_sums.tocsr()
+        matrix.matrix = matrix.matrix.tocsr()
         return matrix
-
-    def __init__(self, dimension):
-        #Map the user and movie ids from the MovieLens dataset to indices in the User-Movie matrix
-        self.user_id_index = {}
-        self.movie_id_index = bidict()
-
-        self.matrix = dok_matrix(dimension)
-        self.column_sums = dok_matrix((1, dimension[1]))
-        self.num_ratings = 0
-
-    def get_shape(self):
-        return self.matrix.shape
-
-    def getrow(self, i):
-        return self.matrix.getrow(i)
-
-    def get_movielens_id(self, matrix_ind):
-        return self.movie_id_index.inv[matrix_ind]
-
-    def get_ratings_vector(self, preferences):
-        """
-        Converts a user's movie ratings using movie lens identifiers to an index
-        based on the locations of movies in the User_Movie_Matrx
-
-        @Param preferences: A mapping of (movieLens movie id) -> (user rating)
-
-        Returns a dictionary with the same user ratings but instead mapping (matrix location) -> (user rating)
-        Useful when we need to get user similarity profiles.
-        """
-
-        vector = csr_matrix((1, self.get_shape()[1]))
-        for x in preferences:
-            vector[0, self.movie_id_index[x]] = preferences[x] + self.ratings_adjustment
-
-        return vector
-
-
-    def add_rating(self, user, movie, rating):
-        self.update_index(self.user_id_index, user)
-        self.update_index(self.movie_id_index, movie)
-        self.column_sums[0, self.movie_id_index[movie]] += 1
-        self.num_ratings += 1
-        self.matrix[self.user_id_index[user], self.movie_id_index[movie]] = rating + self.ratings_adjustment
-
-    def update_index(self, index, identifier):
-        if(identifier not in index):
-            index[identifier] = len(index)
-
-    def update_columns_sum_vector(self):
-        for i in range(self.matrix.shape[1]):
-            col = self.matrix.getcol(i)
-            self.column_sums[0, i] = self.matrix.getcol(i).getnnz()
-
-        self.column_sums = self.column_sums.tocsr()
-
-    def convert_to_csr(self):
-        self.column_sums = self.column_sums.tocsr()
-        self.matrix = self.matrix.tocsr()
 
 
 def ratings_file(datadir):
@@ -208,5 +150,3 @@ def get_year_mapping(datadir):
             movielens_to_year[movielens] = 1900
 
     return movielens_to_year
-
-

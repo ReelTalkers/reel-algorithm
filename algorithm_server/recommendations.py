@@ -1,6 +1,62 @@
 import scipy.sparse as sp
 from collections import OrderedDict
+from bidict import bidict
 import math
+
+
+class User_Movie_Matrix:
+
+    ratings_adjustment = -3
+
+    def __init__(self, dimension):
+        #Map the user and movie ids from the MovieLens dataset to indices in the User-Movie matrix
+        self.user_id_index = {}
+        self.movie_id_index = bidict()
+
+        self.matrix = sp.dok_matrix(dimension)
+        self.column_sums = sp.dok_matrix((1, dimension[1]))
+        self.num_ratings = 0
+
+    def get_shape(self):
+        return self.matrix.shape
+
+    def getrow(self, i):
+        return self.matrix.getrow(i)
+
+    def get_movielens_id(self, matrix_ind):
+        return self.movie_id_index.inv[matrix_ind]
+
+    def get_ratings_vector(self, preferences):
+        """
+        Converts a user's movie ratings using movie lens identifiers to an index
+        based on the locations of movies in the User_Movie_Matrx
+
+        @Param preferences: A mapping of (movieLens movie id) -> (user rating)
+
+        Returns a dictionary with the same user ratings but instead mapping (matrix location) -> (user rating)
+        Useful when we need to get user similarity profiles.
+        """
+
+        vector = sp.dok_matrix((1, self.get_shape()[1]))
+        for x in preferences:
+            vector[0, self.movie_id_index[x]] = preferences[x] + self.ratings_adjustment
+
+        return vector.tocsr()
+
+    def add_rating(self, user, movie, rating):
+        self.update_index(self.user_id_index, user)
+        self.update_index(self.movie_id_index, movie)
+        self.column_sums[0, self.movie_id_index[movie]] += 1
+        self.num_ratings += 1
+        self.matrix[self.user_id_index[user], self.movie_id_index[movie]] = rating + self.ratings_adjustment
+
+    def adjust_column_sums(self):
+        for i in range(self.column_sums.get_shape()[1]):
+            self.column_sums[0, i] = (1 + math.log(self.column_sums[0, 1], 2))
+
+    def update_index(self, index, identifier):
+        if(identifier not in index):
+            index[identifier] = len(index)
 
 
 class Aggregation_Functions:
@@ -83,7 +139,7 @@ class Recommender:
         """
         scores = user_similarity_profile.dot(self.ratings_matrix.matrix)
         for i in range(scores.get_shape()[1]):
-            scores[0, i] /= (1 + math.log(self.ratings_matrix.column_sums[0, i], 2))
+            scores[0, i] /= self.ratings_matrix.column_sums[0, i]
         return scores
 
 

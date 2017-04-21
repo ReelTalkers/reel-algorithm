@@ -65,7 +65,8 @@ def parse_method(json):
 
 
 def parse_min_year(json):
-    return int(json.get("min_year", None))
+    min_year = json.get("min_year", None)
+    return (int(min_year) if min_year else min_year)
 
 
 def rated_movies_set(user_ratings):
@@ -88,7 +89,7 @@ def set_globals(datadir, log_filepath):
     global recommenders
     global logfile
 
-    ratings_matrix = io_utils.User_Movie_Matrix.from_datadir(datadir)
+    ratings_matrix = io_utils.Matrix_Builder.build_matrix(datadir)
     movielens_to_imdb_bidict = io_utils.get_movie_links_dict(datadir)
     movielens_to_genre = io_utils.get_genre_mapping(datadir)
     movielens_to_year = io_utils.get_year_mapping(datadir)
