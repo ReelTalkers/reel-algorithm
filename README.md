@@ -62,6 +62,7 @@ http://localhost:5000/recommendations
 ```
 {
 	"quantity": 2,
+	"min_year": 2006,    //optional
 	"method": "least_misery",
 	"users": [
 		{
@@ -200,6 +201,7 @@ http://localhost:5000/similar_movies
 ```
 {
 	"quantity": 10,
+	"min_year": 2006,    //optional
 	"movies": [
 		"tt0106611",
 		"tt0268380",
