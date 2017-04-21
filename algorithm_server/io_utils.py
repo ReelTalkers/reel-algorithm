@@ -198,3 +198,15 @@ def get_most_popular_movies_of_genre(datadir, genre, quantity):
 
     return list(sorted(total_stars.keys(), key=lambda x: total_stars[x], reverse=True))[:quantity]
 
+def get_year_mapping(datadir):
+    movielens_to_year = {}
+
+    for movielens, title, genres in get_movie_description_stream(datadir):
+        try:
+            movielens_to_year[movielens] = int(title[title.rfind("(") + 1: title.rfind(")")])
+        except:
+            movielens_to_year[movielens] = 1900
+
+    return movielens_to_year
+
+
