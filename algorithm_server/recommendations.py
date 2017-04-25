@@ -31,6 +31,11 @@ class User_Movie_Matrix:
 
         self.top_movies = user_similarities.dot(self.matrix)
 
+    def initialize_column_sums(self):
+        for i in range(self.column_sums.get_shape()[1]):
+            self.column_sums[0, i] = (1 + math.log(self.column_sums[0, 1], 2))
+
+        self.column_sums = self.column_sums.tocsr()
 
     def get_top_movies(self):
         return self.top_movies
@@ -67,10 +72,6 @@ class User_Movie_Matrix:
         self.column_sums[0, self.movie_id_index[movie]] += 1
         self.num_ratings += 1
         self.matrix[self.user_id_index[user], self.movie_id_index[movie]] = rating + self.ratings_adjustment
-
-    def adjust_column_sums(self):
-        for i in range(self.column_sums.get_shape()[1]):
-            self.column_sums[0, i] = (1 + math.log(self.column_sums[0, 1], 2))
 
     def update_index(self, index, identifier):
         if(identifier not in index):

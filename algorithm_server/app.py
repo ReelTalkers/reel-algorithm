@@ -15,8 +15,6 @@ def recommendations():
 
     user_ratings = io_utils.get_user_rating_list(json, movielens_to_imdb_bidict)
 
-    print(user_ratings)
-
     rated_movies = rated_movies_set(user_ratings)
 
     rvc = Recommendations_Vector_Collection.from_user_ratings(ratings_matrix, user_ratings)
