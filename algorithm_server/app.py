@@ -101,6 +101,6 @@ def set_globals(datadir, log_filepath):
     logfile = log_filepath
 
 
-def start_server(datadir, logfile):
-    set_globals(datadir, logfile)
+def start_server(datadir, log_filepath):
+    set_globals(datadir, log_filepath)
     app.run(debug=True)

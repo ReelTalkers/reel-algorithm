@@ -5,7 +5,12 @@ import math
 
 
 class User_Movie_Matrix:
+    """
+    Data structure that contains the User-Movie ratings matrix from the MovieLens dataset.
+    To get an instance of this datastructure, call io_utils.build_matrix()
+    """
 
+    #Ratings are adjusted to be in the range (-2.5, 2.0)
     ratings_adjustment = -3
 
     def __init__(self, dimension):
@@ -13,12 +18,12 @@ class User_Movie_Matrix:
         self.user_id_index = {}
         self.movie_id_index = bidict()
 
+        #matrix and vector of column sums of the matrix
         self.matrix = sp.dok_matrix(dimension)
         self.column_sums = sp.dok_matrix((1, dimension[1]))
 
+        #vector of the top movies for a generic user
         self.top_movies = None
-
-        self.num_ratings = 0
 
     def initialize_top_movies(self):
         user_dim = self.matrix.get_shape()[0]
@@ -34,7 +39,6 @@ class User_Movie_Matrix:
     def initialize_column_sums(self):
         for i in range(self.column_sums.get_shape()[1]):
             self.column_sums[0, i] = (1 + math.log(self.column_sums[0, 1], 2))
-
         self.column_sums = self.column_sums.tocsr()
 
     def get_top_movies(self):
@@ -66,11 +70,15 @@ class User_Movie_Matrix:
 
         return vector.tocsr()
 
+    def normalize_score_vector(self, scores):
+        for i in range(scores.get_shape()[1]):
+            scores[0, i] /= self.column_sums[0, i]
+        return scores
+
     def add_rating(self, user, movie, rating):
         self.update_index(self.user_id_index, user)
         self.update_index(self.movie_id_index, movie)
         self.column_sums[0, self.movie_id_index[movie]] += 1
-        self.num_ratings += 1
         self.matrix[self.user_id_index[user], self.movie_id_index[movie]] = rating + self.ratings_adjustment
 
     def update_index(self, index, identifier):
@@ -79,6 +87,13 @@ class User_Movie_Matrix:
 
 
 class Aggregation_Functions:
+    """
+    Contains aggregation functions for generating group recommendations.
+
+    The aggregation functions operate on a list of scores (floats) and return a single float.
+
+    Used by the Group_Recommender class and all subclasses.
+    """
 
     @classmethod
     def highest_score_agg(cls, values, **kwargs):
@@ -97,6 +112,9 @@ class Aggregation_Functions:
 
 
 class Recommender:
+    """
+    Provides a recommendation vector for a single user.
+    """
 
     def __init__(self, ratings_matrix):
         """
@@ -157,9 +175,7 @@ class Recommender:
         the user we are generating recommendations for and a user entry in the ratings_matrix
         """
         scores = user_similarity_profile.dot(self.ratings_matrix.matrix)
-        for i in range(scores.get_shape()[1]):
-            scores[0, i] /= self.ratings_matrix.column_sums[0, i]
-        return scores
+        return self.ratings_matrix.normalize_score_vector(scores)
 
 
 class Group_Recommender():
@@ -285,7 +301,6 @@ class Movie_Scores:
 
         self.items = filtered
 
-
     def convert_indices_to_imdb(self, movie_id_mapper):
         self.id_type = "imdb"
         items = OrderedDict()
@@ -321,7 +336,6 @@ class Movie_Scores:
             movie_score.convert_indices_to_imdb(movielens_to_imdb)
 
         return {genre: movie_score.output_as_keys_list() for genre, movie_score in genre_dict.items()}
-
 
     def output_as_scores_list(self):
         output = []
