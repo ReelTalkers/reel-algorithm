@@ -11,7 +11,7 @@ class Matrix_Builder:
         for userId, movieId, rating in get_ratings_stream(datadir):
             matrix.add_rating(userId, movieId, float(rating))
 
-        matrix.initialize_column_sums()
+        matrix.initialize_scaled_column_sums()
         matrix.initialize_top_movies()
 
         matrix.matrix = matrix.matrix.tocsr()

@@ -20,7 +20,7 @@ class User_Movie_Matrix:
 
         #matrix and vector of column sums of the matrix
         self.matrix = sp.dok_matrix(dimension)
-        self.column_sums = sp.dok_matrix((1, dimension[1]))
+        self.scaled_column_sums = sp.dok_matrix((1, dimension[1]))
 
         #vector of the top movies for a generic user
         self.top_movies = None
@@ -36,10 +36,10 @@ class User_Movie_Matrix:
 
         self.top_movies = user_similarities.dot(self.matrix)
 
-    def initialize_column_sums(self):
-        for i in range(self.column_sums.get_shape()[1]):
-            self.column_sums[0, i] = (1 + math.log(self.column_sums[0, 1], 2))
-        self.column_sums = self.column_sums.tocsr()
+    def initialize_scaled_column_sums(self):
+        for i in range(self.scaled_column_sums.get_shape()[1]):
+            self.scaled_column_sums[0, i] = (1 + math.log(self.scaled_column_sums[0, 1], 2))
+        self.scaled_column_sums = self.scaled_column_sums.tocsr()
 
     def get_top_movies(self):
         return self.top_movies
@@ -72,13 +72,13 @@ class User_Movie_Matrix:
 
     def normalize_score_vector(self, scores):
         for i in range(scores.get_shape()[1]):
-            scores[0, i] /= self.column_sums[0, i]
+            scores[0, i] /= self.scaled_column_sums[0, i]
         return scores
 
     def add_rating(self, user, movie, rating):
         self.update_index(self.user_id_index, user)
         self.update_index(self.movie_id_index, movie)
-        self.column_sums[0, self.movie_id_index[movie]] += 1
+        self.scaled_column_sums[0, self.movie_id_index[movie]] += 1
         self.matrix[self.user_id_index[user], self.movie_id_index[movie]] = rating + self.ratings_adjustment
 
     def update_index(self, index, identifier):
