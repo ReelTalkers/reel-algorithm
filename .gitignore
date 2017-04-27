@@ -3,3 +3,4 @@ data/movielens/*
 *.pyc
 sample_recommendations.txt
 log.txt
+SECRET.txt
