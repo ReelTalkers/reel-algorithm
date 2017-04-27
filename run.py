@@ -9,4 +9,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    app.start_server(args.datadir, args.logfile)
+    app.App_Runner.start_server(args.datadir, args.logfile)

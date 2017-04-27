@@ -7,8 +7,44 @@ from collections import *
 app = Flask(__name__)
 
 
+class App_Runner:
+
+    @classmethod
+    def set_globals(cls, datadir, log_filepath):
+        global ratings_matrix
+        global movielens_to_imdb_bidict
+        global movielens_to_genre
+        global movielens_to_year
+        global legal_genres
+        global recommenders
+        global logfile
+
+        ratings_matrix = io_utils.Matrix_Builder.build_matrix(datadir)
+        movielens_to_imdb_bidict = io_utils.get_movie_links_dict(datadir)
+        movielens_to_genre = io_utils.get_genre_mapping(datadir)
+        movielens_to_year = io_utils.get_year_mapping(datadir)
+        legal_genres = set().union(*[m for m in movielens_to_genre.values()])
+
+        recommenders = {}
+        recommenders["least_misery"] = Least_Misery_Recommender
+        recommenders["disagreement_variance"] = Disagreement_Variance_Recommender
+
+        logfile = log_filepath
+
+    @classmethod
+    def start_server(cls, datadir, log_filepath):
+        App_Runner.set_globals(datadir, log_filepath)
+        app.run(debug=False)
+
+
 @app.route('/recommendations', methods=['POST'])
 def recommendations():
+    """
+    Get recommendations for a group of users.
+
+    See API doc for sample input and output.
+    """
+
     json = request.get_json()
 
     method = parse_method(json)
@@ -33,6 +69,12 @@ def recommendations():
 
 @app.route('/similar_movies', methods=['POST'])
 def similar_movies():
+    """
+    Get movies that are similar to an input list of movies.
+
+    See API doc for sample input and output.
+    """
+
     json = request.get_json()
 
     min_year = parse_min_year(json)
@@ -52,7 +94,6 @@ def similar_movies():
     scores.convert_indices_to_imdb(movielens_to_imdb_bidict)
 
     return jsonify(scores.output_as_keys_list())
-
 
 
 def parse_quantity(json):
@@ -77,30 +118,3 @@ def log(to_file):
     logger.write(to_file)
     logger.write("\n")
     logger.close()
-
-
-def set_globals(datadir, log_filepath):
-    global ratings_matrix
-    global movielens_to_imdb_bidict
-    global movielens_to_genre
-    global movielens_to_year
-    global legal_genres
-    global recommenders
-    global logfile
-
-    ratings_matrix = io_utils.Matrix_Builder.build_matrix(datadir)
-    movielens_to_imdb_bidict = io_utils.get_movie_links_dict(datadir)
-    movielens_to_genre = io_utils.get_genre_mapping(datadir)
-    movielens_to_year = io_utils.get_year_mapping(datadir)
-    legal_genres = set().union(*[m for m in movielens_to_genre.values()])
-
-    recommenders = {}
-    recommenders["least_misery"] = Least_Misery_Recommender
-    recommenders["disagreement_variance"] = Disagreement_Variance_Recommender
-
-    logfile = log_filepath
-
-
-def start_server(datadir, log_filepath):
-    set_globals(datadir, log_filepath)
-    app.run(debug=False)
