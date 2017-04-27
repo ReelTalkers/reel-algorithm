@@ -103,4 +103,4 @@ def set_globals(datadir, log_filepath):
 
 def start_server(datadir, log_filepath):
     set_globals(datadir, log_filepath)
-    app.run(debug=True)
+    app.run(debug=False)
