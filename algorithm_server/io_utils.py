@@ -90,7 +90,7 @@ def get_title_mapping(datadir):
         title_map[id] = str(title)
 
     return title_map
-    
+
 
 def get_genre_mapping(datadir):
     genre_map = {}

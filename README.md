@@ -61,7 +61,7 @@ http://localhost:5000/recommendations
 
 ```
 {
-	"quantity": 30,
+	"quantity": 2,
 	"min_year": 2006,
 	"method": "disagreement_variance",
 	"users": [
