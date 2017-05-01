@@ -163,9 +163,11 @@ class Recommender:
 
         shared_items = set(user1_preferences.indices) & set(user2_preferences.indices)
 
+        all_items = set(user1_preferences.indices) | set(user2_preferences.indices)
+
         num_agreements = sum(1 for x in shared_items if abs(user1_preferences[0, x] - user2_preferences[0, x]) <= 2)
 
-        return (num_agreements / len(shared_items) if len(shared_items) > 0 else 0)
+        return (num_agreements / len(all_items) if len(all_items) > 0 else 0)
 
     def calculate_item_relevance_scores(self, user_similarity_profile):
         """
