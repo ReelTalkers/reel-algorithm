@@ -67,6 +67,7 @@ def recommendations():
     return jsonify(scores.output_as_genre_separated_keys_list(legal_genres, movielens_to_imdb_bidict, 
                                                                                   movielens_to_genre, quantity))
 
+
 @app.route('/similar_movies', methods=['POST'])
 def similar_movies():
     """
@@ -84,11 +85,13 @@ def similar_movies():
     movielens_movies = {movielens_to_imdb_bidict.inv[m] for m in movies}
 
     user_ratings = [{m: 5.0 for m in movielens_movies}]
+    genres = set.union(*[movielens_to_genre[m] for m in movielens_movies])
 
     rvc = Recommendations_Vector_Collection.from_user_ratings(ratings_matrix, user_ratings)
 
     scores = Movie_Scores.from_score_vector(ratings_matrix, rvc.get_vector(0), set(movielens_movies))
 
+    scores.filter_on_genres(movielens_to_genre, genres)
     scores.filter_on_year(movielens_to_year, min_year)
     scores.trim_to_top_k(quantity)
     scores.convert_indices_to_imdb(movielens_to_imdb_bidict)

@@ -62,12 +62,11 @@ http://localhost:5000/recommendations
 ```
 {
 	"quantity": 2,
-	"min_year": 2006,    //optional
-	"method": "least_misery",
+	"min_year": 2006,
+	"method": "disagreement_variance",
 	"users": [
 		{
 			"user": "data/sample_users/andrew.txt",
-			"is_cached": false,
 			"ratings": [
 				{
 					"rating": "5.0",
@@ -81,15 +80,14 @@ http://localhost:5000/recommendations
 		},
 		{
 			"user": "data/sample_users/galen.txt",
-			"is_cached": true,
 			"ratings": [
 				{
-					"imdb": "tt0133093",
-					"score": 0.8725195129822181
+					"rating": "4.5",
+					"imdb": "tt0468569"
 				},
 				{
-					"imdb": "tt0076759",
-					"score": 0.8052612579104834
+					"rating": "5",
+					"imdb": "tt0482571"
 				}
 			]
 		}
@@ -201,7 +199,7 @@ http://localhost:5000/similar_movies
 ```
 {
 	"quantity": 10,
-	"min_year": 2006,    //optional
+	"min_year": 2006,
 	"movies": [
 		"tt0106611",
 		"tt0268380",

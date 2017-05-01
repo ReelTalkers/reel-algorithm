@@ -241,7 +241,6 @@ class Recommendations_Vector_Collection:
 
         return rvc
 
-
     def __init__(self):
         self.rec_vectors = []
 
@@ -290,6 +289,18 @@ class Movie_Scores:
             trimmed[item[0]] = item[1]
 
         self.items = trimmed
+
+    def filter_on_genres(self, movielens_to_genre, genres):
+        if(not genres or len(genres) == 0):
+            return
+
+        filtered = OrderedDict()
+
+        for key in self.items.keys():
+            if(any(g in movielens_to_genre[key] for g in genres)):
+                filtered[key] = self.items[key]
+
+        self.items = filtered
 
     def filter_on_year(self, movielens_to_year, min_year):
         if(not min_year):
